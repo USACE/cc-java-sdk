@@ -1,4 +1,4 @@
-package usace.wat.plugin.utils;
+package usace.wat.plugin;
  
 import java.io.File;
 import java.io.FileOutputStream;
@@ -24,7 +24,7 @@ import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 
 
-public class Loader {
+public class Utilities {
     private Config _config = new Config();
     private AmazonS3 _client = null;
     public Loader(){

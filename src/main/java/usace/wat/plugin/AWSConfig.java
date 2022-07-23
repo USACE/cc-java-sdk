@@ -1,6 +1,6 @@
-package usace.wat.plugin.utils;
+package usace.wat.plugin;
 
-public class Config {
+public class AWSConfig {
 	String AWS_ACCESS_KEY_ID;
 	String AWS_SECRET_ACCESS_KEY;
 	String AWS_DEFAULT_REGION;
