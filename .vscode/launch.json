@@ -1,0 +1,26 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Launch Current File",
+            "request": "launch",
+            "mainClass": "${file}",
+            "vmArgs": "-Djava.library.path=/HEC-HMS-4.9/bin/gdal:/HEC-HMS-4.9/bin",
+            "args": "-payload=configs/payloads/payload.yml",
+            "env": {}
+        },
+        {
+            "type": "java",
+            "name": "Launch hmsrunner",
+            "request": "launch",
+            "mainClass": "usace.wat.plugin.hmsrunner.hmsrunner",
+            "projectName": "hms-runner",
+            "vmArgs": "-Djava.library.path=/HEC-HMS-4.9/bin/gdal:/HEC-HMS-4.9/bin",
+            "args": "-payload=configs/payloads/payload.yml"
+        }
+    ]
+}

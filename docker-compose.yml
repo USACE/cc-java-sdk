@@ -1,0 +1,30 @@
+version: '3'
+services:
+  minio:
+    container_name: wat-java-sdk-s3
+    image: minio/minio
+    environment:
+      - MINIO_ROOT_USER=AKIAIOSFODNN7EXAMPLE
+      - MINIO_ROOT_PASSWORD=wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY
+    command: server /data --console-address ":9001"
+    ports:
+      - '9000:9000'
+      - '9001:9001'
+  # configure minio on startup (create buckets, etc)
+  # inspired by https://github.com/minio/minio/issues/4769
+  # and         https://gist.github.com/haxoza/22afe7cc4a9da7e8bdc09aad393a99cc
+  minio_init:
+    container_name: wat-java-sdk-s3_init
+    image: minio/mc
+    depends_on:
+      - minio
+    entrypoint: >
+      /bin/sh -c "
+      /usr/bin/mc config host add minio http://minio:9000 AKIAIOSFODNN7EXAMPLE wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY;
+      /usr/bin/mc mb   minio/configs;
+      /usr/bin/mc policy set public minio/configs;
+      /usr/bin/mc cp --recursive /configs/ minio/configs/ ;
+      exit 0;
+      "
+    volumes:
+      - ./configs:/configs

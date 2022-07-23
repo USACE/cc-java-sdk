@@ -1,0 +1,42 @@
+//The Gradle JVM needs to be Java 1.8. It'll build with anything, but you're gonna run into runtime errors "Java lang no method found" if you dont.
+
+plugins {
+    id 'java-library'
+}
+//Dependency Management
+repositories {
+    mavenCentral()
+    maven {
+        url "https://www.hec.usace.army.mil/nexus/repository/maven-public/"
+    }
+}
+configurations {
+    linux_x64
+}
+dependencies {
+    //linux_x64 'mil.army.usace.hec:hec-hms:4.9-linux64@tar.gz'
+    implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.4'
+    implementation 'com.fasterxml.jackson.core:jackson-core:2.12.4'
+    implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
+    implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.4'
+    implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.1000')
+    implementation 'com.amazonaws:aws-java-sdk-s3'
+    implementation files('/HEC-HMS-4.9/hms.jar')
+    implementation fileTree(dir: '/HEC-HMS-4.9/lib', include: '*.jar')
+}
+/*
+task getNatives(type: Copy){
+        configurations.linux_x64.asFileTree.each {
+            from(tarTree(it))
+            into "$projectDir/bin"
+        }
+}
+*/
+jar {
+    sourceCompatibility = JavaVersion.VERSION_1_8
+    targetCompatibility = JavaVersion.VERSION_1_8
+}
+
+group 'mil.army.usace.hec'
+version '0.0.1'
+//build.finalizedBy getNatives
