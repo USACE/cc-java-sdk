@@ -1,14 +1,14 @@
 package usace.wat.plugin;
 import com.fasterxml.jackson.annotation.JsonProperty;
-public class ModelConfiguration {
+public class Model {
     @JsonProperty
-    private String model_name;
+    private String name;
     @JsonProperty
-    private String model_alternative;
-    public String ModelName(){
-        return model_name;
+    private String alternative;
+    public String getName(){
+        return name;
     }
-    public String ModelAlternative(){
-        return model_alternative;
+    public String getAlternative(){
+        return alternative;
     }
 }
