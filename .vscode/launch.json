@@ -9,18 +9,6 @@
             "name": "Launch Current File",
             "request": "launch",
             "mainClass": "${file}",
-            "vmArgs": "-Djava.library.path=/HEC-HMS-4.9/bin/gdal:/HEC-HMS-4.9/bin",
-            "args": "-payload=configs/payloads/payload.yml",
-            "env": {}
         },
-        {
-            "type": "java",
-            "name": "Launch hmsrunner",
-            "request": "launch",
-            "mainClass": "usace.wat.plugin.hmsrunner.hmsrunner",
-            "projectName": "hms-runner",
-            "vmArgs": "-Djava.library.path=/HEC-HMS-4.9/bin/gdal:/HEC-HMS-4.9/bin",
-            "args": "-payload=configs/payloads/payload.yml"
-        }
     ]
 }

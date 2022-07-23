@@ -4,18 +4,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class ResourceInfo {
     @JsonProperty
-    private String scheme;
+    private StoreTypes store;
     @JsonProperty
-    private String authority;
+    private String root;
     @JsonProperty
-    private String fragment;
-    public String getFilePath(){
-        return authority + fragment;
+    private String path;
+    public String getPath(){
+        return path;
     }
-    public String getAuthority(){
-        return authority;
+    public String getRoot(){
+        return root;
     }
-    public String getFragment(){
-        return fragment;
+    public StoreTypes getStore(){
+        return store;
     }
 }
