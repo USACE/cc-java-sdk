@@ -10,33 +10,29 @@ import com.fasterxml.jackson.core.JsonParseException;
 
 public class ModelPayload {
     @JsonProperty
-    private ModelConfiguration model_configuration;
+    private String payload_id;
     @JsonProperty
-    private ModelLinks model_links;
-    public static ModelPayload readYaml(final File file) {
-        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); // jackson databind
-        try {
-            return mapper.readValue(file, ModelPayload.class);
-        } catch (JsonParseException e) {
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        return new ModelPayload();
+    private Model model;
+    @JsonProperty
+    private int event_index;
+    @JsonProperty
+    private ResourcedFileData[] inputs;
+    @JsonProperty
+    private ResourcedFileData[] outputs;
+    public String getId(){
+        return payload_id;
     }
-    public LinkedDataDescription[] Inputs(){
-        return model_links.getLinked_inputs();
+    public int getEventIndex(){
+        return event_index;
     }
-    public LinkedDataDescription[] Outputs(){
-        return model_links.getRequired_outputs();
+    public ResourcedFileData[] getInputs(){
+        return inputs;
     }
-    public String ModelName(){
-        return model_configuration.ModelName();
+    public ResourcedFileData[] getOutputs(){
+        return outputs;
     }
-    public String ModelAlternative(){
-        return model_configuration.ModelAlternative();
+    public Model getModel(){
+        return model;
     }
 }
 
