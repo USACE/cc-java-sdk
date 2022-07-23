@@ -1,9 +1,6 @@
 package usace.wat.plugin;
 import com.fasterxml.jackson.annotation.JsonProperty;
 public class EventConfiguration {
-    	EventNumber       int       `json:"event_number"`
-	RealizationNumber int       `json:"realization_number"`
-	Seeds             []SeedSet `json:"seeds"`
     @JsonProperty
     private int event_number;
     @JsonProperty
