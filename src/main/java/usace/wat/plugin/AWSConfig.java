@@ -1,12 +1,24 @@
 package usace.wat.plugin;
-
+import com.fasterxml.jackson.annotation.JsonProperty;
 public class AWSConfig {
-	String AWS_ACCESS_KEY_ID;
-	String AWS_SECRET_ACCESS_KEY;
-	String AWS_DEFAULT_REGION;
-	String AWS_S3_REGION;
-	Boolean S3_MOCK;
-	String S3_BUCKET;
-	String S3_ENDPOINT;
-	Boolean S3_FORCE_PATH_STYLE; 
+	@JsonProperty
+	public String aws_config_name;
+	@JsonProperty
+	public Boolean is_primary_config;
+	@JsonProperty
+	public String aws_access_key_id;
+	@JsonProperty
+	public String aws_secret_access_key_id;
+	@JsonProperty
+	public String aws_region;
+	@JsonProperty
+	public String aws_bucket;
+	@JsonProperty
+	public Boolean aws_mock;
+	@JsonProperty
+	public String aws_endpoint;
+	@JsonProperty
+	public String aws_disable_ssl;
+	@JsonProperty
+	public Boolean aws_force_path_style;
 }
