@@ -27,39 +27,30 @@ import com.amazonaws.services.s3.model.S3Object;
 public class Utilities {
     private Config _config = new Config();
     private AmazonS3 _client = null;
-    public Loader(){
-        //read environment variables
-        //setting by default for now for testing.
-        _config.AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE";
-        _config.AWS_SECRET_ACCESS_KEY = "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY";
-        _config.AWS_DEFAULT_REGION = "us_east_1";
-        _config.AWS_S3_REGION = "us_east_1";
-        _config.S3_MOCK = true;
-        _config.S3_ENDPOINT = "http://host.docker.internal:9000";
-        _config.S3_FORCE_PATH_STYLE = true;
-
-
-        Regions clientRegion = Regions.valueOf(_config.AWS_DEFAULT_REGION.toUpperCase());
+    public Loader(config Config){
+        _config = config;
+        AWSConfig awsconfig = _config.PrimaryConfig();
+        Regions clientRegion = Regions.valueOf(awsconfig.AWS_DEFAULT_REGION.toUpperCase());
         try {
             AmazonS3 s3Client = null;
-            if(_config.S3_MOCK){
-                AWSCredentials credentials = new BasicAWSCredentials(_config.AWS_ACCESS_KEY_ID, _config.AWS_SECRET_ACCESS_KEY);
+            if(awsconfig.S3_MOCK){
+                AWSCredentials credentials = new BasicAWSCredentials(awsconfig.AWS_ACCESS_KEY_ID, awsconfig.AWS_SECRET_ACCESS_KEY);
                 ClientConfiguration clientConfiguration = new ClientConfiguration();
                 clientConfiguration.setSignerOverride("AWSS3V4SignerType");
 
                 s3Client = AmazonS3ClientBuilder
                     .standard()
-                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(_config.S3_ENDPOINT, clientRegion.name()))
-                    .withPathStyleAccessEnabled(_config.S3_FORCE_PATH_STYLE)
+                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(awsconfig.S3_ENDPOINT, clientRegion.name()))
+                    .withPathStyleAccessEnabled(awsconfig.S3_FORCE_PATH_STYLE)
                     .withClientConfiguration(clientConfiguration)
                     .withCredentials(new AWSStaticCredentialsProvider(credentials))
                     .build();
             }else{
+                AWSCredentials credentials = new BasicAWSCredentials(awsconfig.AWS_ACCESS_KEY_ID, awsconfig.AWS_SECRET_ACCESS_KEY);
                 s3Client = AmazonS3ClientBuilder
                     .standard()
                     .withRegion(clientRegion)
-                    //requires credentials to be set via env variables AWS_SECRET_KEY ...
-                    .withCredentials(new ProfileCredentialsProvider())
+                    .withCredentials(new AWSStaticCredentialsProvider(credentials))
                     .build();                
             }
             _client = s3Client;
