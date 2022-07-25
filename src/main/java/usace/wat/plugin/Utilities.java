@@ -23,10 +23,25 @@ import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 
 
-public class Utilities {
-    private Config _config = new Config();
+public final class Utilities {
+    private static Config _config;
     private AmazonS3 _client = null;
-    public Utilities(Config config){
+    private Boolean _hasInitalized = false;
+    private Utilities(){
+        InitalizeFromPath("config.json");
+    }
+    private Utilities(String jsonFilePath){
+        InitalizeFromPath(jsonFilePath);
+    }
+    private Utilities(Config config){
+        Initalize(config);
+    }
+    private void InitalizeFromPath(String path){
+        //read from json to fill a configuration.
+        Config cfg = new Config();
+        Initalize(cfg);
+    }
+    private void Initalize(Config config){
         _config = config;
         AWSConfig awsconfig = _config.PrimaryConfig();
         Regions clientRegion = Regions.valueOf(awsconfig.aws_region.toUpperCase());
@@ -62,7 +77,7 @@ public class Utilities {
             // couldn't parse the response from Amazon S3.
             e.printStackTrace();
         }
-        
+        _hasInitalized = true;        
     }
     public void UploadToS3(String bucketName, String objectKey, String objectPath) {
         try {
