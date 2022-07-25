@@ -13,7 +13,7 @@ public class FileData {
     public String getFileName(){
         return filename;
     }
-    public InternalPathData[] getInternalPaths{
+    public InternalPathData[] getInternalPaths(){
         return internal_paths;
     }
 }

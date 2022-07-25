@@ -4,16 +4,16 @@ public class SeedSet {
     @JsonProperty
     private String identifier;
     @JsonProperty
-    private int64 event_seed;
+    private long event_seed;
     @JsonProperty
-    private int64 realization_seed;
+    private long realization_seed;
     public String getIdentifier(){
         return identifier;
     }
-    public int64 getEventSeed(){
+    public long getEventSeed(){
         return event_seed;
     }
-    public int64 getRealizationSeed(){
+    public long getRealizationSeed(){
         return realization_seed;
     }
 }

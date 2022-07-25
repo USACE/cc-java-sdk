@@ -4,7 +4,7 @@ public class Message {
     @JsonProperty
     private Status status;
     @JsonProperty
-    private int8 progress;
+    private short progress;
     @JsonProperty
     private Level level;
     @JsonProperty

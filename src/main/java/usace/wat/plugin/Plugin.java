@@ -6,9 +6,9 @@ public class Plugin{
     @JsonProperty
     private String name;
     @JsonProperty
-    private String image_and_tag
+    private String image_and_tag;
     @JsonProperty
-    private String[] command
+    private String[] command;
     public String getName(){
         return name;
     }
@@ -16,6 +16,6 @@ public class Plugin{
         return image_and_tag;
     }
     public String[] getCommand(){
-        return command
+        return command;
     }
 }

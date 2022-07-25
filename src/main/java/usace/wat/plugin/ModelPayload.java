@@ -1,12 +1,5 @@
 package usace.wat.plugin;
-import java.io.File;
-import java.io.IOException;
-
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
-import com.fasterxml.jackson.databind.JsonMappingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParseException;
 
 public class ModelPayload {
     @JsonProperty

@@ -11,7 +11,7 @@ public class EventConfiguration {
         return event_number;
     }
     public int getRealizationNumber(){
-        return realization_seed;
+        return realization_number;
     }
     public SeedSet[] getSeeds(){
         return seeds;

@@ -15,7 +15,7 @@ public class ResourcedFileData {
     public String getFileName(){
         return filename;
     }
-    public ResourcedInternalPathData[] getInternalPaths{
+    public ResourcedInternalPathData[] getInternalPaths(){
         return internal_paths;
     }
     public ResourceInfo getResourceInfo(){
