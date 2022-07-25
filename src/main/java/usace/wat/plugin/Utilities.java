@@ -27,26 +27,26 @@ import com.amazonaws.services.s3.model.S3Object;
 public class Utilities {
     private Config _config = new Config();
     private AmazonS3 _client = null;
-    public Loader(config Config){
+    public Utilities(Config config){
         _config = config;
         AWSConfig awsconfig = _config.PrimaryConfig();
-        Regions clientRegion = Regions.valueOf(awsconfig.AWS_DEFAULT_REGION.toUpperCase());
+        Regions clientRegion = Regions.valueOf(awsconfig.aws_region.toUpperCase());
         try {
             AmazonS3 s3Client = null;
             if(awsconfig.S3_MOCK){
-                AWSCredentials credentials = new BasicAWSCredentials(awsconfig.AWS_ACCESS_KEY_ID, awsconfig.AWS_SECRET_ACCESS_KEY);
+                AWSCredentials credentials = new BasicAWSCredentials(awsconfig.aws_access_key_id, awsconfig.aws_secret_access_key_id);
                 ClientConfiguration clientConfiguration = new ClientConfiguration();
                 clientConfiguration.setSignerOverride("AWSS3V4SignerType");
 
                 s3Client = AmazonS3ClientBuilder
                     .standard()
-                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(awsconfig.S3_ENDPOINT, clientRegion.name()))
-                    .withPathStyleAccessEnabled(awsconfig.S3_FORCE_PATH_STYLE)
+                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(awsconfig.aws_endpoint, clientRegion.name()))
+                    .withPathStyleAccessEnabled(awsconfig.aws_force_path_style)
                     .withClientConfiguration(clientConfiguration)
                     .withCredentials(new AWSStaticCredentialsProvider(credentials))
                     .build();
             }else{
-                AWSCredentials credentials = new BasicAWSCredentials(awsconfig.AWS_ACCESS_KEY_ID, awsconfig.AWS_SECRET_ACCESS_KEY);
+                AWSCredentials credentials = new BasicAWSCredentials(awsconfig.aws_access_key_id, awsconfig.aws_secret_access_key_id);
                 s3Client = AmazonS3ClientBuilder
                     .standard()
                     .withRegion(clientRegion)
