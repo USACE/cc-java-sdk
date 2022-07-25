@@ -25,8 +25,8 @@ import com.amazonaws.services.s3.model.S3Object;
 
 public final class Utilities {
     private static Config _config;
-    private AmazonS3 _client = null;
-    private Boolean _hasInitalized = false;
+    private static AmazonS3 _client = null;
+    private static Boolean _hasInitalized = false;
     private Utilities(){
         InitalizeFromPath("config.json");
     }
@@ -36,12 +36,12 @@ public final class Utilities {
     private Utilities(Config config){
         Initalize(config);
     }
-    private void InitalizeFromPath(String path){
+    private static void InitalizeFromPath(String path){
         //read from json to fill a configuration.
         Config cfg = new Config();
         Initalize(cfg);
     }
-    private void Initalize(Config config){
+    private static void Initalize(Config config){
         _config = config;
         AWSConfig awsconfig = _config.PrimaryConfig();
         Regions clientRegion = Regions.valueOf(awsconfig.aws_region.toUpperCase());
@@ -79,7 +79,7 @@ public final class Utilities {
         }
         _hasInitalized = true;        
     }
-    public void UploadToS3(String bucketName, String objectKey, String objectPath) {
+    private static void UploadToS3(String bucketName, String objectKey, String objectPath) {
         try {
             File file = new File(objectPath);
             PutObjectRequest putOb = new PutObjectRequest(bucketName, objectKey, file);
@@ -89,7 +89,7 @@ public final class Utilities {
             System.out.println(e.getMessage());
         }
     }
-    public void DownloadFromS3(String bucketName, String key, String outputDestination){
+    private static void DownloadFromS3(String bucketName, String key, String outputDestination){
         S3Object fullObject = null;
         try {
             // Get an object and print its contents.
