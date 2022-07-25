@@ -16,6 +16,7 @@ dependencies {
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
     implementation 'com.fasterxml.jackson.dataformat:jackson-dataformat-yaml:2.12.4'
     implementation platform('com.amazonaws:aws-java-sdk-bom:1.11.1000')
+    implementation 'com.amazonaws:aws-java-sdk-s3'
 }
 jar {
     sourceCompatibility = JavaVersion.VERSION_1_8

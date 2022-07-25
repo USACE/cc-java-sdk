@@ -13,7 +13,6 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.profile.ProfileCredentialsProvider;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -33,7 +32,7 @@ public class Utilities {
         Regions clientRegion = Regions.valueOf(awsconfig.aws_region.toUpperCase());
         try {
             AmazonS3 s3Client = null;
-            if(awsconfig.S3_MOCK){
+            if(awsconfig.aws_mock){
                 AWSCredentials credentials = new BasicAWSCredentials(awsconfig.aws_access_key_id, awsconfig.aws_secret_access_key_id);
                 ClientConfiguration clientConfiguration = new ClientConfiguration();
                 clientConfiguration.setSignerOverride("AWSS3V4SignerType");
