@@ -1,4 +1,4 @@
-FROM hmstesting/ubuntu:ubuntu20.04_openjdk11 as dev
+FROM ubuntu20.04 as dev
 ENV TZ=America/New_York
 #need to get the jdk.
 RUN apt update
