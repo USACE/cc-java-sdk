@@ -163,7 +163,7 @@ public final class Utilities {
         OutputStream os = new FileOutputStream(new File(outputDestination));
         os.write(bytes);
     }
-    private static ModelPayload ReadYamlFromBytes(byte[] bytes) {
+    private static ModelPayload ReadYamlModelPayloadFromBytes(byte[] bytes) {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); // jackson databind
         try {
             return mapper.readValue(bytes, ModelPayload.class);
@@ -202,31 +202,8 @@ public final class Utilities {
         if (config == null) {
             return payload;
         }
-        /*
-        fs, err := getStore(config.AWS_BUCKET)
-        if err != nil {
-            return payload, err
-        }
-        data, err := fs.GetObject(filepath)
-        if err != nil {
-            return payload, err
-        }
-    
-        body, err := ioutil.ReadAll(data)
-        if err != nil {
-            return payload, err
-        }
-    */
-    return ReadYamlFromBytes(null);
-        /*
-        if err != nil {
-            Log(Message{
-                Message: fmt.Sprintf("error reading:%v", filepath),
-                Level:   ERROR,
-                Sender:  "Plugin Services",
-            })
-        }*/
-        
+        byte[] body = DownloadBytesFromS3(config.aws_bucket, filepath);
+        return ReadYamlModelPayloadFromBytes(body);
     }
     public static void Log(Message message){
         System.out.println(message);
@@ -268,5 +245,30 @@ public final class Utilities {
             Log(message);
             break;
         }
+    }
+
+    public static EventConfiguration LoadEventConfiguration(ResourceInfo resourceInfo) {
+        Message message = Message.BuildMessage()
+            .withMessage("reading event configuration at path: " + resourceInfo.getPath())
+            .withErrorLevel(Level.INFO)
+            .fromSender("Plugin Services")
+            .build();
+        Log(message);
+        if (!_hasInitalized){
+            InitalizeFromPath("config.json");
+        }
+        byte[] body = DownloadBytesFromS3(resourceInfo.getRoot(), resourceInfo.getPath());
+        final ObjectMapper mapper = new ObjectMapper(); // jackson databind json parsing
+        try {
+            return mapper.readValue(body, EventConfiguration.class);
+        } catch (Exception e) {
+            Message message2 = Message.BuildMessage()
+            .withMessage("Error Parsing Event Configuration Contents: " + e.getMessage())
+            .withErrorLevel(Level.ERROR)
+            .fromSender("Plugin Services")
+            .build();
+            Log(message2);
+        }
+        return new EventConfiguration();
     }
 }

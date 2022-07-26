@@ -16,4 +16,13 @@ public class EventConfiguration {
     public SeedSet[] getSeeds(){
         return seeds;
     }
+    public SeedSet getSeedSet(String identifier){
+        for (SeedSet seedSet : seeds) {
+            if (seedSet.getIdentifier()==identifier){
+                return seedSet;
+            }
+        }
+        //@TODO: probably should throw exception
+        return null;
+    }
 }
