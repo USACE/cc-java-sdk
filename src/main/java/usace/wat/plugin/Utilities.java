@@ -1,5 +1,6 @@
 package usace.wat.plugin;
  
+import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -18,6 +19,7 @@ import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
@@ -99,10 +101,13 @@ public final class Utilities {
         }
         _hasInitalized = true;        
     }
-    private static void UploadToS3(String bucketName, String objectKey, String objectPath) {
+    private static void UploadToS3(String bucketName, String objectKey, byte[] fileBytes) {
         try {
-            File file = new File(objectPath);
-            PutObjectRequest putOb = new PutObjectRequest(bucketName, objectKey, file);
+            //File file = new File(objectPath);
+            InputStream stream = new ByteArrayInputStream(fileBytes);
+            ObjectMetadata meta = new ObjectMetadata();
+            meta.setContentLength(fileBytes.length);
+            PutObjectRequest putOb = new PutObjectRequest(bucketName, objectKey,stream, meta);
             PutObjectResult response = _client.putObject(putOb);
             System.out.println(response.getETag());
         } catch (SdkBaseException e) {
@@ -174,6 +179,9 @@ public final class Utilities {
     }
     public static ModelPayload LoadPayload(String filepath){
         //use primary s3 bucket to find the payload.
+        if (!_hasInitalized){
+            InitalizeFromPath("config.json");
+        }
         Message message = Message.BuildMessage()
             .withMessage("reading payload at path: " + filepath)
             .withErrorLevel(Level.INFO)
@@ -181,6 +189,15 @@ public final class Utilities {
             .build();
         Log(message);
         ModelPayload payload = new ModelPayload();
+        if (_config.aws_configs.length==0){
+            Message message2 = Message.BuildMessage()
+                .withMessage("Configuration contains no AWS Configurations")
+                .withErrorLevel(Level.ERROR)
+                .fromSender("Plugin Services")
+                .build();
+            Log(message2);
+            return null;//not sure - probably throw an exception instead.
+        }
         AWSConfig config = _config.PrimaryConfig();
         if (config == null) {
             return payload;
@@ -213,5 +230,43 @@ public final class Utilities {
     }
     public static void Log(Message message){
         System.out.println(message);
+    }
+    public static byte[] DownloadObject(ResourceInfo info){
+        switch(info.getStore()){
+            case S3:
+                return DownloadBytesFromS3(info.getRoot(), info.getPath());
+            case LOCAL:
+                return null;
+            default:
+            return null;
+        }
+    }
+    public static void UploadFile(ResourceInfo info, byte[] fileBytes){
+        switch(info.getStore()){
+            case S3:
+                UploadToS3(info.getRoot(), info.getPath(), fileBytes);
+                break;
+            case LOCAL:
+                InputStream stream = new ByteArrayInputStream(fileBytes);
+                try {
+                    writeInputStreamToDisk(stream, info.getRoot() + File.pathSeparator + info.getPath());
+                } catch (IOException e) {
+                    Message message = Message.BuildMessage()
+                    .withMessage("Error Uploading local file: " + info.getPath() + " " + e.getMessage())
+                    .withErrorLevel(Level.ERROR)
+                    .fromSender("Plugin Services")
+                    .build();
+                Log(message);
+                } 
+            break;
+            default:
+            Message message = Message.BuildMessage()
+                .withMessage("Error Uploading local file to " + info.getStore())
+                .withErrorLevel(Level.ERROR)
+                .fromSender("Plugin Services")
+                .build();
+            Log(message);
+            break;
+        }
     }
 }
