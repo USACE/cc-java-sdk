@@ -47,15 +47,17 @@ public final class Utilities {
         //read from json to fill a configuration.
         Config cfg = new Config();
         File file = new File(path);
-        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); // jackson databind
+
+        final ObjectMapper mapper = new ObjectMapper();
         try {
             cfg = mapper.readValue(file, Config.class);
-        } catch (JsonParseException e) {
-            e.printStackTrace();//bad form
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            Message message = Message.BuildMessage()
+            .withMessage("Error Parsing Configuration Contents: at path " + path + " with error " + e.getMessage())
+            .withErrorLevel(Level.ERROR)
+            .fromSender("Plugin Services")
+            .build();
+            Log(message);
         }
         Initalize(cfg);
     }
@@ -107,27 +109,42 @@ public final class Utilities {
             System.out.println(e.getMessage());
         }
     }
-    private static void DownloadFromS3(String bucketName, String key, String outputDestination){
+    private static byte[] DownloadBytesFromS3(String bucketName, String key){
         S3Object fullObject = null;
         try {
             // Get an object and print its contents.
-            System.out.println("Downloading an object");
+            Message message = Message.BuildMessage()
+            .withMessage("Downloading from S3: " + bucketName + "/" + key)
+            .withErrorLevel(Level.INFO)
+            .fromSender("Plugin Services")
+            .build();
+            Log(message);
             fullObject = _client.getObject(new GetObjectRequest(bucketName, key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
-            writeInputStreamToDisk(fullObject.getObjectContent(), outputDestination);
-        } catch (IOException e) {
-            
-            e.printStackTrace();
+            return fullObject.getObjectContent().readAllBytes();
+        }  catch (Exception e) {
+            Message message = Message.BuildMessage()
+            .withMessage("Error Downloading from S3: " + e.getMessage())
+            .withErrorLevel(Level.ERROR)
+            .fromSender("Plugin Services")
+            .build();
+            Log(message);
         } finally {
             // To ensure that the network connection doesn't remain open, close any open input streams.
             if (fullObject != null) {
                 try {
                     fullObject.close();
-                } catch (IOException e) {
-                    e.printStackTrace();
+                }  catch (Exception e) {
+                    Message message = Message.BuildMessage()
+                    .withMessage("Error Closing S3 object: " + e.getMessage())
+                    .withErrorLevel(Level.ERROR)
+                    .fromSender("Plugin Services")
+                    .build();
+                    Log(message);
                 }
             }
         }
+        return null;
     }
     private static void writeInputStreamToDisk(InputStream input, String outputDestination) throws IOException {
         String[] fileparts = outputDestination.split("/");
@@ -145,12 +162,13 @@ public final class Utilities {
         final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); // jackson databind
         try {
             return mapper.readValue(bytes, ModelPayload.class);
-        } catch (JsonParseException e) {
-            e.printStackTrace();
-        } catch (JsonMappingException e) {
-            e.printStackTrace();
-        } catch (IOException e) {
-            e.printStackTrace();
+        } catch (Exception e) {
+            Message message = Message.BuildMessage()
+            .withMessage("Error Parsing Payload Contents: " + e.getMessage())
+            .withErrorLevel(Level.ERROR)
+            .fromSender("Plugin Services")
+            .build();
+            Log(message);
         }
         return new ModelPayload();
     }
