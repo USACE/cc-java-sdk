@@ -1,5 +1,4 @@
 package usace.wat.plugin;
-import java.util.Date;
 
 import org.joda.time.DateTime;
 
@@ -18,6 +17,9 @@ public class Message {
     @JsonProperty
     private String payload_id;
     private DateTime date;
+    public Level getLevel(){
+        return level;
+    }
     private Message(){
         message = "";
         level = Level.INFO;
@@ -56,6 +58,7 @@ public class Message {
             return this;
         }
         public Message build(){
+            _message.date = DateTime.now();
             return _message;
         }
     }

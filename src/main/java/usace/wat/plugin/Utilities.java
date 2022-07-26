@@ -36,6 +36,7 @@ public final class Utilities {
     private static Config _config;
     private static AmazonS3 _client = null;
     private static Boolean _hasInitalized = false;
+    private static Level _logLevel = Level.INFO;
     private Utilities(){
         InitalizeFromPath("config.json");
     }
@@ -206,7 +207,9 @@ public final class Utilities {
         return ReadYamlModelPayloadFromBytes(body);
     }
     public static void Log(Message message){
-        System.out.println(message);
+        if(message.getLevel()==_logLevel){//>=_logLevel){//@Todo make an int or byte backed enum for comparison.
+            System.out.println(message);
+        }
     }
     public static byte[] DownloadObject(ResourceInfo info){
         switch(info.getStore()){
@@ -246,7 +249,6 @@ public final class Utilities {
             break;
         }
     }
-
     public static EventConfiguration LoadEventConfiguration(ResourceInfo resourceInfo) {
         Message message = Message.BuildMessage()
             .withMessage("reading event configuration at path: " + resourceInfo.getPath())
@@ -270,5 +272,8 @@ public final class Utilities {
             Log(message2);
         }
         return new EventConfiguration();
+    }
+    public static void SetLogLevel(Level level){
+        _logLevel = level;
     }
 }
