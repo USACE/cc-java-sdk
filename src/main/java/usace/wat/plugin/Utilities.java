@@ -21,7 +21,14 @@ import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
+import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
+import usace.wat.plugin.Message.Level;
+
+import com.fasterxml.jackson.databind.JsonMappingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.core.JsonParseException;
 
 public final class Utilities {
     private static Config _config;
@@ -39,6 +46,17 @@ public final class Utilities {
     private static void InitalizeFromPath(String path){
         //read from json to fill a configuration.
         Config cfg = new Config();
+        File file = new File(path);
+        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); // jackson databind
+        try {
+            cfg = mapper.readValue(file, Config.class);
+        } catch (JsonParseException e) {
+            e.printStackTrace();//bad form
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
         Initalize(cfg);
     }
     private static void Initalize(Config config){
@@ -112,8 +130,6 @@ public final class Utilities {
         }
     }
     private static void writeInputStreamToDisk(InputStream input, String outputDestination) throws IOException {
-        // Read the text input stream one line at a time and display each line.
-        
         String[] fileparts = outputDestination.split("/");
         String fileName = fileparts[fileparts.length-1];
         String directory = outputDestination.replace(fileName,"");
@@ -124,5 +140,60 @@ public final class Utilities {
         byte[] bytes = input.readAllBytes();
         OutputStream os = new FileOutputStream(new File(outputDestination));
         os.write(bytes);
+    }
+    private static ModelPayload ReadYamlFromBytes(byte[] bytes) {
+        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); // jackson databind
+        try {
+            return mapper.readValue(bytes, ModelPayload.class);
+        } catch (JsonParseException e) {
+            e.printStackTrace();
+        } catch (JsonMappingException e) {
+            e.printStackTrace();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return new ModelPayload();
+    }
+    public static ModelPayload LoadPayload(String filepath){
+        //use primary s3 bucket to find the payload.
+        Message message = Message.BuildMessage()
+            .withMessage("reading payload at path: " + filepath)
+            .withErrorLevel(Level.INFO)
+            .fromSender("Plugin Services")
+            .build();
+        Log(message);
+        ModelPayload payload = new ModelPayload();
+        AWSConfig config = _config.PrimaryConfig();
+        if (config == null) {
+            return payload;
+        }
+        /*
+        fs, err := getStore(config.AWS_BUCKET)
+        if err != nil {
+            return payload, err
+        }
+        data, err := fs.GetObject(filepath)
+        if err != nil {
+            return payload, err
+        }
+    
+        body, err := ioutil.ReadAll(data)
+        if err != nil {
+            return payload, err
+        }
+    */
+    return ReadYamlFromBytes(null);
+        /*
+        if err != nil {
+            Log(Message{
+                Message: fmt.Sprintf("error reading:%v", filepath),
+                Level:   ERROR,
+                Sender:  "Plugin Services",
+            })
+        }*/
+        
+    }
+    public static void Log(Message message){
+        System.out.println(message);
     }
 }
