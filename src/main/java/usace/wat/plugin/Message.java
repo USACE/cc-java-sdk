@@ -28,6 +28,33 @@ public class Message {
         status = Status.COMPUTING;
         date = DateTime.now();
     }
+    @Override
+    public String toString(){
+        String s = "";
+        if(sender == ""){
+		    s = "Unknown Sender";
+	    }else{
+            s = sender;
+        }
+	    if (level.compareTo(Level.DEBUG) == 0){
+            StackTraceElement element = Thread.currentThread().getStackTrace()[3];//test - could be 2
+            int callersLineNumber = element.getLineNumber();
+            String callerClass = element.getClassName();
+            String callerMethod = element.getMethodName();
+            return s + " issues " + level.toString() + " at " + date.toString() + " from file " + callerClass + " on line " + callersLineNumber + " in method name " + callerMethod + "\n\t" + message + "\n";
+		
+	    } else {
+		    if (level.compareTo(Level.ERROR)>=0) {//test.
+                StackTraceElement element = Thread.currentThread().getStackTrace()[3];//test - could be 2
+                int callersLineNumber = element.getLineNumber();
+                String callerClass = element.getClassName();
+                String callerMethod = element.getMethodName();
+                return s + " issues " + level.toString() + " at " + date.toString() + " from file " + callerClass + " on line " + callersLineNumber + " in method name " + callerMethod + "\n\t" + message + "\n";
+            
+            }
+            return s +" issues " + level.toString() + " at " + date.toString() + "\n\t" + message + "\n";
+	    }
+    }
     public static MessageBuilder BuildMessage(){
         MessageBuilder  builder = new MessageBuilder();
         return builder;

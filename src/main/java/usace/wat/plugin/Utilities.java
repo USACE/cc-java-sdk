@@ -27,10 +27,7 @@ import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 import usace.wat.plugin.Message.Level;
 
-import com.fasterxml.jackson.databind.JsonMappingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.annotation.JsonProperty;
-import com.fasterxml.jackson.core.JsonParseException;
 
 public final class Utilities {
     private static Config _config;
@@ -207,8 +204,8 @@ public final class Utilities {
         return ReadYamlModelPayloadFromBytes(body);
     }
     public static void Log(Message message){
-        if(message.getLevel()==_logLevel){//>=_logLevel){//@Todo make an int or byte backed enum for comparison.
-            System.out.println(message);
+        if(message.getLevel().compareTo(_logLevel)>=0){//test.
+            System.out.println(message.toString());
         }
     }
     public static byte[] DownloadObject(ResourceInfo info){
@@ -273,7 +270,10 @@ public final class Utilities {
         }
         return new EventConfiguration();
     }
-    public static void SetLogLevel(Level level){
+    public static void setLogLevel(Level level){
         _logLevel = level;
+    }
+    public static Config getConfig(){
+        return _config;
     }
 }
