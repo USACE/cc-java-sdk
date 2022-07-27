@@ -30,11 +30,38 @@ import usace.wat.plugin.Message.Level;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class Utilities {
-    private static Config _config;
-    private static AmazonS3 _client = null;
-    private static Boolean _hasInitalized = false;
-    private static Level _logLevel = Level.INFO;
+    private Config _config;
+    private AmazonS3 _client = null;
+    private Boolean _hasInitalized = false;
+    private Level _logLevel = Level.INFO;
     private static Utilities Instance = new Utilities();
+    private Config getConfig(){
+        return _config;
+    }
+    private AmazonS3 getClient(){
+        return _client;
+    }
+    private Boolean getHasInitalized(){
+        return _hasInitalized;
+    } 
+    private Level getLogLevel(){
+        return _logLevel;
+    }
+    private void setConfig(Config cfg){
+        _config = cfg;
+    }
+    private void setClient(AmazonS3 s3){
+        _client = s3;
+    }
+    private void setHasInitalized(Boolean value){
+        _hasInitalized = value;
+    } 
+    private void setInternalLogLevel(Level level){
+        _logLevel = level;
+    }
+    public static void setLogLevel(Level level){
+        Instance.setInternalLogLevel(level);
+    }
     private Utilities(){
         //InitalizeFromPath("config.json");
     }
@@ -60,8 +87,8 @@ public final class Utilities {
         Initalize(cfg);
     }
     public static void Initalize(Config config){
-        _config = config;
-        AWSConfig awsconfig = _config.PrimaryConfig();
+        Instance.setConfig(config);
+        AWSConfig awsconfig = Instance.getConfig().PrimaryConfig();
         Regions clientRegion = Regions.valueOf(awsconfig.aws_region.toUpperCase());
         try {
             AmazonS3 s3Client = null;
@@ -85,7 +112,7 @@ public final class Utilities {
                     .withCredentials(new AWSStaticCredentialsProvider(credentials))
                     .build();                
             }
-            _client = s3Client;
+            Instance.setClient(s3Client);
         } catch (AmazonServiceException e) {
             // The call was transmitted successfully, but Amazon S3 couldn't process 
             // it, so it returned an error response.
@@ -95,7 +122,7 @@ public final class Utilities {
             // couldn't parse the response from Amazon S3.
             e.printStackTrace();
         }
-        _hasInitalized = true;        
+        Instance.setHasInitalized(true);        
     }
     public static void UploadToS3(String bucketName, String objectKey, byte[] fileBytes) {
         try {
@@ -104,7 +131,7 @@ public final class Utilities {
             ObjectMetadata meta = new ObjectMetadata();
             meta.setContentLength(fileBytes.length);
             PutObjectRequest putOb = new PutObjectRequest(bucketName, objectKey,stream, meta);
-            PutObjectResult response = _client.putObject(putOb);
+            PutObjectResult response = Instance.getClient().putObject(putOb);
             System.out.println(response.getETag());
         } catch (SdkBaseException e) {
             System.out.println(e.getMessage());
@@ -120,7 +147,7 @@ public final class Utilities {
             .fromSender("Plugin Services")
             .build();
             Log(message);
-            fullObject = _client.getObject(new GetObjectRequest(bucketName, key));
+            fullObject = Instance.getClient().getObject(new GetObjectRequest(bucketName, key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
             return fullObject.getObjectContent().readAllBytes();
         }  catch (Exception e) {
@@ -175,7 +202,7 @@ public final class Utilities {
     }
     public static ModelPayload LoadPayload(String filepath){
         //use primary s3 bucket to find the payload.
-        if (!_hasInitalized){
+        if (!Instance.getHasInitalized()){
             InitalizeFromPath("config.json");
         }
         Message message = Message.BuildMessage()
@@ -185,7 +212,7 @@ public final class Utilities {
             .build();
         Log(message);
         ModelPayload payload = new ModelPayload();
-        if (_config.aws_configs.length==0){
+        if (Instance.getConfig().aws_configs.length==0){
             Message message2 = Message.BuildMessage()
                 .withMessage("Configuration contains no AWS Configurations")
                 .withErrorLevel(Level.ERROR)
@@ -194,7 +221,7 @@ public final class Utilities {
             Log(message2);
             return null;//not sure - probably throw an exception instead.
         }
-        AWSConfig config = _config.PrimaryConfig();
+        AWSConfig config = Instance.getConfig().PrimaryConfig();
         if (config == null) {
             return payload;
         }
@@ -202,7 +229,7 @@ public final class Utilities {
         return ReadYamlModelPayloadFromBytes(body);
     }
     public static void Log(Message message){
-        if(message.getLevel().compareTo(_logLevel)>=0){//test.
+        if(message.getLevel().compareTo(Instance.getLogLevel())>=0){//test.
             System.out.println(message.toString());
         }
     }
@@ -251,7 +278,7 @@ public final class Utilities {
             .fromSender("Plugin Services")
             .build();
         Log(message);
-        if (!_hasInitalized){
+        if (!Instance.getHasInitalized()){
             InitalizeFromPath("config.json");
         }
         byte[] body = DownloadBytesFromS3(resourceInfo.getRoot(), resourceInfo.getPath());
@@ -267,11 +294,5 @@ public final class Utilities {
             Log(message2);
         }
         return new EventConfiguration();
-    }
-    public static void setLogLevel(Level level){
-        _logLevel = level;
-    }
-    public static Config getConfig(){
-        return _config;
     }
 }
