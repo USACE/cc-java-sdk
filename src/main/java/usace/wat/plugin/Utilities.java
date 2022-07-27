@@ -34,16 +34,14 @@ public final class Utilities {
     private static AmazonS3 _client = null;
     private static Boolean _hasInitalized = false;
     private static Level _logLevel = Level.INFO;
+    private static Utilities Instance = new Utilities();
     private Utilities(){
+        //InitalizeFromPath("config.json");
+    }
+    public static void Initalize(){
         InitalizeFromPath("config.json");
     }
-    private Utilities(String jsonFilePath){
-        InitalizeFromPath(jsonFilePath);
-    }
-    private Utilities(Config config){
-        Initalize(config);
-    }
-    private static void InitalizeFromPath(String path){
+    public static void InitalizeFromPath(String path){
         //read from json to fill a configuration.
         Config cfg = new Config();
         File file = new File(path);
@@ -61,7 +59,7 @@ public final class Utilities {
         }
         Initalize(cfg);
     }
-    private static void Initalize(Config config){
+    public static void Initalize(Config config){
         _config = config;
         AWSConfig awsconfig = _config.PrimaryConfig();
         Regions clientRegion = Regions.valueOf(awsconfig.aws_region.toUpperCase());
@@ -99,7 +97,7 @@ public final class Utilities {
         }
         _hasInitalized = true;        
     }
-    private static void UploadToS3(String bucketName, String objectKey, byte[] fileBytes) {
+    public static void UploadToS3(String bucketName, String objectKey, byte[] fileBytes) {
         try {
             //File file = new File(objectPath);
             InputStream stream = new ByteArrayInputStream(fileBytes);
