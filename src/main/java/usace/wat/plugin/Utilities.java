@@ -6,6 +6,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.util.HashMap;
+import java.util.Map;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
@@ -31,15 +33,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class Utilities {
     private Config _config;
-    private AmazonS3 _client = null;
+    private Map<String,AmazonS3> _clients;
     private Boolean _hasInitalized = false;
     private Level _logLevel = Level.INFO;
     private static Utilities Instance = new Utilities();
     private Config getConfig(){
         return _config;
     }
-    private AmazonS3 getClient(){
-        return _client;
+    private AmazonS3 getClient(String bucketname){
+        return _clients.get(bucketname);
     }
     private Boolean getHasInitalized(){
         return _hasInitalized;
@@ -50,8 +52,11 @@ public final class Utilities {
     private void setConfig(Config cfg){
         _config = cfg;
     }
-    private void setClient(AmazonS3 s3){
-        _client = s3;
+    private void setClient(String bucketname, AmazonS3 client){
+        _clients.put(bucketname, client);
+    }
+    private void setClientMap(Map<String,AmazonS3> s3){
+        _clients = s3;
     }
     private void setHasInitalized(Boolean value){
         _hasInitalized = value;
@@ -64,6 +69,7 @@ public final class Utilities {
     }
     private Utilities(){
         //InitalizeFromPath("config.json");
+        _clients = new HashMap<>();
     }
     public static void Initalize(){
         InitalizeFromPath("config.json");
@@ -88,7 +94,12 @@ public final class Utilities {
     }
     public static void Initalize(Config config){
         Instance.setConfig(config);
-        AWSConfig awsconfig = Instance.getConfig().PrimaryConfig();
+        for (AWSConfig awsConfig : config.aws_configs) {
+            AddS3Bucket(awsConfig);
+        }
+        Instance.setHasInitalized(true);        
+    }
+    private static void AddS3Bucket(AWSConfig awsconfig) {
         Regions clientRegion = Regions.valueOf(awsconfig.aws_region.toUpperCase());
         try {
             AmazonS3 s3Client = null;
@@ -112,7 +123,7 @@ public final class Utilities {
                     .withCredentials(new AWSStaticCredentialsProvider(credentials))
                     .build();                
             }
-            Instance.setClient(s3Client);
+            Instance.setClient(awsconfig.aws_bucket, s3Client);
         } catch (AmazonServiceException e) {
             // The call was transmitted successfully, but Amazon S3 couldn't process 
             // it, so it returned an error response.
@@ -122,7 +133,6 @@ public final class Utilities {
             // couldn't parse the response from Amazon S3.
             e.printStackTrace();
         }
-        Instance.setHasInitalized(true);        
     }
     public static void UploadToS3(String bucketName, String objectKey, byte[] fileBytes) {
         try {
@@ -131,7 +141,7 @@ public final class Utilities {
             ObjectMetadata meta = new ObjectMetadata();
             meta.setContentLength(fileBytes.length);
             PutObjectRequest putOb = new PutObjectRequest(bucketName, objectKey,stream, meta);
-            PutObjectResult response = Instance.getClient().putObject(putOb);
+            PutObjectResult response = Instance.getClient(bucketName).putObject(putOb);
             System.out.println(response.getETag());
         } catch (SdkBaseException e) {
             System.out.println(e.getMessage());
@@ -147,7 +157,7 @@ public final class Utilities {
             .fromSender("Plugin Services")
             .build();
             Log(message);
-            fullObject = Instance.getClient().getObject(new GetObjectRequest(bucketName, key));
+            fullObject = Instance.getClient(bucketName).getObject(new GetObjectRequest(bucketName, key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
             return fullObject.getObjectContent().readAllBytes();
         }  catch (Exception e) {
