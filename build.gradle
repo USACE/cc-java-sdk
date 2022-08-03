@@ -1,7 +1,6 @@
-//The Gradle JVM needs to be Java 1.8. It'll build with anything, but you're gonna run into runtime errors "Java lang no method found" if you dont.
-
 plugins {
     id 'java-library'
+    id 'maven-publish'
 }
 //Dependency Management
 repositories {
@@ -19,9 +18,38 @@ dependencies {
     implementation 'com.amazonaws:aws-java-sdk-s3'
 }
 jar {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
 }
+publishing {
+    repositories {
+        maven {
+            // Choose whatever name you want
+            name = "GitHubPackages"
+            // The url of the repository, where the artifacts will be published
+            url = "https://maven.pkg.github.com/USACE/wat-java-sdk"
+            credentials {
+                // The credentials (described in the next section)
+                username = System.getenv("USERNAME")
+                password = System.getenv("TOKEN")
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+            // Fixes the error with dynamic versions when using Spring Boot
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
 
-group 'mil.army.usace.hec'
-version '0.0.1'
+    group 'mil.army.usace.hec'
+    version '0.0.1'
+}
