@@ -305,4 +305,32 @@ public final class Utilities {
         }
         return new EventConfiguration();
     }
+    public static Boolean CopyPayloadInputsLocally(ModelPayload payload, String localroot){
+        for (ResourcedFileData input: payload.getInputs()) {
+            byte[] body = DownloadObject(input.getResourceInfo());
+            InputStream stream = new ByteArrayInputStream(body);
+            try {
+                writeInputStreamToDisk(stream, localroot + input.getResourceInfo().getPath());
+            } catch (IOException e) {
+                // TODO Auto-generated catch block
+                //log an error message.
+                e.printStackTrace();
+                return false;
+            }
+            for(ResourcedInternalPathData internalInput : input.getInternalPaths()) {
+                byte[] internalBody = DownloadObject(input.getResourceInfo());
+                InputStream internalStream = new ByteArrayInputStream(internalBody);
+                try {
+                    writeInputStreamToDisk(internalStream, localroot + internalInput.getResourceInfo().getPath());
+                } catch (IOException e) {
+                    // TODO Auto-generated catch block
+                    //log an error message.
+                    e.printStackTrace();
+                    return false;
+                } 
+            }
+        }
+        return true;
+    }
+
 }
