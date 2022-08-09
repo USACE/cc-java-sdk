@@ -134,7 +134,7 @@ public final class Utilities {
             e.printStackTrace();
         }
     }
-    public static void UploadToS3(String bucketName, String objectKey, byte[] fileBytes) {
+    private static void UploadToS3(String bucketName, String objectKey, byte[] fileBytes) {
         try {
             //File file = new File(objectPath);
             InputStream stream = new ByteArrayInputStream(fileBytes);
