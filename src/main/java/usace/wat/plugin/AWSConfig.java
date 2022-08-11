@@ -18,7 +18,7 @@ public class AWSConfig {
 	@JsonProperty
 	public String aws_endpoint;
 	@JsonProperty
-	public String aws_disable_ssl;
+	public Boolean aws_disable_ssl;
 	@JsonProperty
 	public Boolean aws_force_path_style;
 }

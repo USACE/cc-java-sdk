@@ -94,7 +94,19 @@ public final class Utilities {
     }
     public static void InitalizeFromEnv(){
         Config cfg = new Config();
-        
+        cfg.aws_configs = new AWSConfig[1];
+        AWSConfig acfg = new AWSConfig();
+        acfg.aws_config_name = System.getenv("AWS_CONFIG_NAME");
+        acfg.is_primary_config = true;
+        acfg.aws_access_key_id = System.getenv("AWS_ACCESS_KEY_ID");
+        acfg.aws_secret_access_key_id = System.getenv("AWS_SECRET_ACCESS_KEY_ID");
+        acfg.aws_region = System.getenv("AWS_REGION");
+        acfg.aws_bucket = System.getenv("AWS_BUCKET");
+        acfg.aws_mock = Boolean.parseBoolean(System.getenv("AWS_MOCK"));//convert to boolean;
+        acfg.aws_endpoint = System.getenv("AWS_ENDPOINT");
+        acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("AWS_DISABLE_SSL"));//convert to bool?
+        acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv("AWS_FORCE_PATH_STYLE"));//convert to bool
+        cfg.aws_configs[0] = acfg;
         Initalize(cfg);
     }
     public static void Initalize(Config config){
