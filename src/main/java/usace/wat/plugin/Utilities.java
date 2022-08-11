@@ -92,6 +92,11 @@ public final class Utilities {
         }
         Initalize(cfg);
     }
+    public static void InitalizeFromEnv(){
+        Config cfg = new Config();
+        
+        Initalize(cfg);
+    }
     public static void Initalize(Config config){
         Instance.setConfig(config);
         for (AWSConfig awsConfig : config.aws_configs) {
