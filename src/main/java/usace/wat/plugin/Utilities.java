@@ -99,7 +99,7 @@ public final class Utilities {
         acfg.aws_config_name = System.getenv("AWS_CONFIG_NAME");
         acfg.is_primary_config = true;
         acfg.aws_access_key_id = System.getenv("AWS_ACCESS_KEY_ID");
-        acfg.aws_secret_access_key_id = System.getenv("AWS_SECRET_ACCESS_KEY_ID");
+        acfg.aws_secret_access_key_id = System.getenv("AWS_SECRET_ACCESS_KEY");
         acfg.aws_region = System.getenv("AWS_REGION");
         acfg.aws_bucket = System.getenv("AWS_BUCKET");
         acfg.aws_mock = Boolean.parseBoolean(System.getenv("AWS_MOCK"));//convert to boolean;
