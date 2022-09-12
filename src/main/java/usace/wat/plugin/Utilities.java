@@ -117,7 +117,7 @@ public final class Utilities {
         Instance.setHasInitalized(true);        
     }
     private static void AddS3Bucket(AWSConfig awsconfig) {
-        Regions clientRegion = Regions.valueOf(awsconfig.aws_region.toUpperCase());
+        Regions clientRegion = Regions.valueOf(awsconfig.aws_region.toUpperCase().replace("-", "_"));
         try {
             AmazonS3 s3Client = null;
             if(awsconfig.aws_mock){
