@@ -68,7 +68,11 @@ public class Message {
             _message.message = message;
             return this;
         }
-        public MessageBuilder fromSender(String payloadId){
+        public MessageBuilder fromSender(String sender){
+            _message.sender = sender;
+            return this;
+        }
+        public MessageBuilder fromPayload(String payloadId){
             _message.payload_id = payloadId;
             return this;
         }
