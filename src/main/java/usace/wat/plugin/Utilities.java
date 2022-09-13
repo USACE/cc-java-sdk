@@ -18,6 +18,7 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.Protocol;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GetObjectRequest;
@@ -131,6 +132,7 @@ public final class Utilities {
                 AWSCredentials credentials = new BasicAWSCredentials(awsconfig.aws_access_key_id, awsconfig.aws_secret_access_key_id);
                 ClientConfiguration clientConfiguration = new ClientConfiguration();
                 clientConfiguration.setSignerOverride("AWSS3V4SignerType");
+                clientConfiguration.setProtocol(Protocol.HTTP);
 
                 s3Client = AmazonS3ClientBuilder
                     .standard()
