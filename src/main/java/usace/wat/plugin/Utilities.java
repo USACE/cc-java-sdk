@@ -96,22 +96,29 @@ public final class Utilities {
         Config cfg = new Config();
         cfg.aws_configs = new AWSConfig[1];
         AWSConfig acfg = new AWSConfig();
-        acfg.aws_config_name = System.getenv("AWS_CONFIG_NAME");
+        acfg.aws_config_name = System.getenv("NAME");
         acfg.is_primary_config = true;
         acfg.aws_access_key_id = System.getenv("AWS_ACCESS_KEY_ID");
         acfg.aws_secret_access_key_id = System.getenv("AWS_SECRET_ACCESS_KEY");
         acfg.aws_region = System.getenv("AWS_REGION");
         acfg.aws_bucket = System.getenv("AWS_BUCKET");
-        acfg.aws_mock = Boolean.parseBoolean(System.getenv("AWS_MOCK"));//convert to boolean;
-        acfg.aws_endpoint = System.getenv("AWS_ENDPOINT");
-        acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("AWS_DISABLE_SSL"));//convert to bool?
-        acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv("AWS_FORCE_PATH_STYLE"));//convert to bool
+        acfg.aws_mock = Boolean.parseBoolean(System.getenv("S3_MOCK"));//convert to boolean;
+        acfg.aws_endpoint = System.getenv("S3_ENDPOINT");
+        acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("S3_DISABLE_SSL"));//convert to bool?
+        acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv("S3_FORCE_PATH_STYLE"));//convert to bool
         cfg.aws_configs[0] = acfg;
         Initalize(cfg);
     }
     public static void Initalize(Config config){
         Instance.setConfig(config);
         for (AWSConfig awsConfig : config.aws_configs) {
+            //@TODO: remove this diagnostic print
+            Message message = Message.BuildMessage()
+            .withMessage("Configuration: " + awsConfig.ToString())
+            .withErrorLevel(Level.INFO)
+            .fromSender("Plugin Services")
+            .build();
+            Log(message);
             AddS3Bucket(awsConfig);
         }
         Instance.setHasInitalized(true);        
@@ -169,7 +176,7 @@ public final class Utilities {
         try {
             // Get an object and print its contents.
             Message message = Message.BuildMessage()
-            .withMessage("Downloading from S3: " + bucketName + "/" + key)
+            .withMessage("Downloading from S3: " + bucketName + key)
             .withErrorLevel(Level.INFO)
             .fromSender("Plugin Services")
             .build();
