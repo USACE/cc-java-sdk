@@ -114,7 +114,7 @@ public final class Utilities {
         for (AWSConfig awsConfig : config.aws_configs) {
             //@TODO: remove this diagnostic print
             Message message = Message.BuildMessage()
-            .withMessage("Configuration: " + awsConfig.ToString())
+            .withMessage("Configuration: " + awsConfig.toString())
             .withErrorLevel(Level.INFO)
             .fromSender("Plugin Services")
             .build();
