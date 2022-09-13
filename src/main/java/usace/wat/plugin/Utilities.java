@@ -343,18 +343,21 @@ public final class Utilities {
                 e.printStackTrace();
                 return false;
             }
-            for(ResourcedInternalPathData internalInput : input.getInternalPaths()) {
-                byte[] internalBody = DownloadObject(input.getResourceInfo());
-                InputStream internalStream = new ByteArrayInputStream(internalBody);
-                try {
-                    writeInputStreamToDisk(internalStream, localroot + internalInput.getResourceInfo().getPath());
-                } catch (IOException e) {
-                    // TODO Auto-generated catch block
-                    //log an error message.
-                    e.printStackTrace();
-                    return false;
-                } 
+            if (input.getInternalPaths()!=null){
+                for(ResourcedInternalPathData internalInput : input.getInternalPaths()) {
+                    byte[] internalBody = DownloadObject(input.getResourceInfo());
+                    InputStream internalStream = new ByteArrayInputStream(internalBody);
+                    try {
+                        writeInputStreamToDisk(internalStream, localroot + internalInput.getResourceInfo().getPath());
+                    } catch (IOException e) {
+                        // TODO Auto-generated catch block
+                        //log an error message.
+                        e.printStackTrace();
+                        return false;
+                    } 
+                }                
             }
+
         }
         return true;
     }
