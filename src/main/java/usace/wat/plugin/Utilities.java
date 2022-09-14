@@ -336,7 +336,14 @@ public final class Utilities {
             byte[] body = DownloadObject(input.getResourceInfo());
             InputStream stream = new ByteArrayInputStream(body);
             try {
-                writeInputStreamToDisk(stream, localroot + input.getResourceInfo().getPath());
+                String path = localroot + input.getFileName();
+                Message message = Message.BuildMessage()
+                .withMessage("writing locally: " + e.getMessage())
+                .withErrorLevel(Level.ERROR)
+                .fromSender("Plugin Services")
+                .build();
+                Log(message);
+                writeInputStreamToDisk(stream, path);//input.getResourceInfo().getPath());
             } catch (IOException e) {
                 // TODO Auto-generated catch block
                 //log an error message.
