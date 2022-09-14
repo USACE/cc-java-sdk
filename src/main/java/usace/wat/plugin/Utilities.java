@@ -338,8 +338,8 @@ public final class Utilities {
             try {
                 String path = localroot + input.getFileName();
                 Message message = Message.BuildMessage()
-                .withMessage("writing locally: " + e.getMessage())
-                .withErrorLevel(Level.ERROR)
+                .withMessage("writing locally: " + path)
+                .withErrorLevel(Level.INFO)
                 .fromSender("Plugin Services")
                 .build();
                 Log(message);
