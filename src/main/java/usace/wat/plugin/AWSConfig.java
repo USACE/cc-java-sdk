@@ -4,8 +4,6 @@ public class AWSConfig {
 	@JsonProperty
 	public String aws_config_name;
 	@JsonProperty
-	public Boolean is_primary_config;
-	@JsonProperty
 	public String aws_access_key_id;
 	@JsonProperty
 	public String aws_secret_access_key_id;
