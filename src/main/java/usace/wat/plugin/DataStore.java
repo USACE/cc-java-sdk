@@ -1,5 +1,5 @@
 package usace.wat.plugin;
-import java.util.Dictionary;
+import java.util.Map;
 
 import com.fasterxml.jackson.annotation.JsonProperty;
 public class DataStore {
@@ -8,7 +8,7 @@ public class DataStore {
     @JsonProperty
     private String id;
     @JsonProperty
-    private Dictionary<String, String> parameters;
+    private Map<String, String> parameters;
     @JsonProperty
     private StoreType store_type;
     @JsonProperty
@@ -25,7 +25,7 @@ public class DataStore {
     public StoreType getStoreType(){
         return store_type;
     }
-    public Dictionary<String, String> getParameters(){
+    public Map<String, String> getParameters(){
         return parameters;
     }
     public String getDsProfile(){

@@ -28,16 +28,16 @@ import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
-import usace.wat.plugin.Message.Level;
+import usace.wat.plugin.Error.ErrorLevel;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 
-public final class Utilities {
+public final class PluginManager {
     private Config _config;
     private Map<String,AmazonS3> _clients;
     private Boolean _hasInitalized = false;
-    private Level _logLevel = Level.INFO;
-    private static Utilities Instance = new Utilities();
+    private ErrorLevel _logLevel = ErrorLevel.INFO;
+    private static PluginManager Instance = new PluginManager();
     private Config getConfig(){
         return _config;
     }
@@ -47,7 +47,7 @@ public final class Utilities {
     private Boolean getHasInitalized(){
         return _hasInitalized;
     } 
-    private Level getLogLevel(){
+    private ErrorLevel getLogLevel(){
         return _logLevel;
     }
     private void setConfig(Config cfg){
@@ -62,13 +62,13 @@ public final class Utilities {
     private void setHasInitalized(Boolean value){
         _hasInitalized = value;
     } 
-    private void setInternalLogLevel(Level level){
+    private void setInternalLogLevel(ErrorLevel level){
         _logLevel = level;
     }
-    public static void setLogLevel(Level level){
+    public static void setLogLevel(ErrorLevel level){
         Instance.setInternalLogLevel(level);
     }
-    private Utilities(){
+    private PluginManager(){
         //InitalizeFromPath("config.json");
         _clients = new HashMap<>();
     }
@@ -97,12 +97,10 @@ public final class Utilities {
         Config cfg = new Config();
         cfg.aws_configs = new AWSConfig[1];
         AWSConfig acfg = new AWSConfig();
-        acfg.aws_config_name = System.getenv("NAME");
-        acfg.is_primary_config = true;
-        acfg.aws_access_key_id = System.getenv("AWS_ACCESS_KEY_ID");
-        acfg.aws_secret_access_key_id = System.getenv("AWS_SECRET_ACCESS_KEY");
-        acfg.aws_region = System.getenv("AWS_REGION");
-        acfg.aws_bucket = System.getenv("AWS_BUCKET");
+        acfg.aws_access_key_id = System.getenv(EnvironmentVariables.AWS_ACCESS_KEY_ID);
+        acfg.aws_secret_access_key_id = System.getenv(EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
+        acfg.aws_region = System.getenv(EnvironmentVariables.AWS_DEFAULT_REGION);
+        acfg.aws_bucket = System.getenv(EnvironmentVariables.AWS_S3_BUCKET);
         acfg.aws_mock = Boolean.parseBoolean(System.getenv("S3_MOCK"));//convert to boolean;
         acfg.aws_endpoint = System.getenv("S3_ENDPOINT");
         acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("S3_DISABLE_SSL"));//convert to bool?
