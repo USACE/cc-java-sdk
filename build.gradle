@@ -27,7 +27,7 @@ publishing {
             // Choose whatever name you want
             name = "GitHubPackages"
             // The url of the repository, where the artifacts will be published
-            url = "https://maven.pkg.github.com/USACE/wat-java-sdk"
+            url = "https://maven.pkg.github.com/USACE/cc-java-sdk"
             credentials {
                 // The credentials (described in the next section)
                 username = System.getenv("USERNAME")
