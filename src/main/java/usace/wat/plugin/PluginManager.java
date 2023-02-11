@@ -34,10 +34,12 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class PluginManager {
     private Config _config;
+    private DataStore ws;
+    private String _manifestId;
+    private Payload _payload;
     private Map<String,AmazonS3> _clients;
     private Boolean _hasInitalized = false;
-    private ErrorLevel _logLevel = ErrorLevel.INFO;
-    private static PluginManager Instance = new PluginManager();
+    private Logger _logger;
     private Config getConfig(){
         return _config;
     }
@@ -47,9 +49,6 @@ public final class PluginManager {
     private Boolean getHasInitalized(){
         return _hasInitalized;
     } 
-    private ErrorLevel getLogLevel(){
-        return _logLevel;
-    }
     private void setConfig(Config cfg){
         _config = cfg;
     }
@@ -63,17 +62,13 @@ public final class PluginManager {
         _hasInitalized = value;
     } 
     private void setInternalLogLevel(ErrorLevel level){
-        _logLevel = level;
+        _logger.setErrorLevel(level);
     }
-    public static void setLogLevel(ErrorLevel level){
-        Instance.setInternalLogLevel(level);
-    }
-    private PluginManager(){
-        //InitalizeFromPath("config.json");
+    PluginManager(){
+        String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
+        _logger = new Logger(sender, ErrorLevel.WARN);
+        _manifestId = System.getenv(EnvironmentVariables.CC_MANIFEST_ID);
         _clients = new HashMap<>();
-    }
-    public static void Initalize(){
-        InitalizeFromPath("config.json");
     }
     public static void InitalizeFromPath(String path){
         //read from json to fill a configuration.

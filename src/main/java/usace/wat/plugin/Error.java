@@ -1,5 +1,7 @@
 package usace.wat.plugin;
 
+import java.util.EnumSet;
+
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Error {
@@ -10,7 +12,8 @@ public class Error {
         ERROR,
         FATAL,
         PANIC,
-        DISABLED,
+        DISABLED;
+        public static final EnumSet<ErrorLevel> All_Opts = EnumSet.allOf(ErrorLevel.class);
     }
     @JsonProperty
     private String error;
