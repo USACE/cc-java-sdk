@@ -20,7 +20,7 @@ public class GetObjectInput {
     /**
      * 
      */
-    public GetObjectInput(String fileName, StoreType sourceStoreType, String sourceRootPath, String destRootPath, String fileExtension){
+    public GetObjectInput(String fileName, StoreType sourceStoreType, String sourceRootPath, String fileExtension){
         this.fileName = fileName;
         this.sourceStoreType = sourceStoreType;
         this.sourceRootPath = sourceRootPath;

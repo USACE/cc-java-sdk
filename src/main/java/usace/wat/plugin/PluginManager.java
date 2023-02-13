@@ -1,7 +1,10 @@
 package usace.wat.plugin;
  
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.rmi.RemoteException;
 import java.util.Map;
@@ -47,11 +50,10 @@ public final class PluginManager {
     }
     public byte[] getFile(DataSource ds, int path){
         FileDataStore store = getFileStore(ds.getStoreName());
-        FileInputStream reader = store.Get(ds.getPaths()[path]);
+        InputStream reader = store.Get(ds.getPaths()[path]);
         byte[] data;
         try {
-            data = new byte[(int) reader.getChannel().size()];
-            reader.read(data);
+            data = reader.readAllBytes();
             return data;
         } catch (IOException e) {
             e.printStackTrace();
