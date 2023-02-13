@@ -1,19 +1,32 @@
 package usace.wat.plugin;
 
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.rmi.RemoteException;
 
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
+import com.amazonaws.SdkBaseException;
 import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
+import com.amazonaws.auth.SdkClock.Instance;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.GetObjectRequest;
+import com.amazonaws.services.s3.model.ObjectMetadata;
+import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
@@ -85,15 +98,70 @@ public class CcStoreS3 implements CcStore {
     }
     @Override
     public boolean PutObject(PutObjectInput input) {
-        return false;
+        String path = remoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
+        byte[] data;
+        switch(input.getObjectState()){
+            case LocalDisk:
+                //read from local
+                File file = new File(path);
+                data = new byte[(int) file.length()];
+                try(FileInputStream fis = new FileInputStream(file)) {
+                    fis.read(data);
+                }
+                catch(Exception e){
+                    //@TODOprint?
+                }
+                UploadToS3(config.aws_bucket, path, data);
+                break;
+            case Memory:
+                data = input.getData();
+                UploadToS3(config.aws_bucket, path, data);
+                break;
+            default:
+                return false;
+        }
+        
+        return true;
     }
     @Override
     public boolean PullObject(PullObjectInput input) {
+        String path = remoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
+        byte[] data;
+        String localPath = input.getDestRootPath() + "/" + input.getFileName() + "." + input.getFileExtension();
+        try {
+            //get the object from s3
+            data = DownloadBytesFromS3(path);
+            //create localpath writer
+            InputStream stream = new ByteArrayInputStream(data);
+            //write it.
+            writeInputStreamToDisk(stream, localPath);
+        } catch (Exception e) {
+            return false;
+        }
         return false;
+    }
+    private void writeInputStreamToDisk(InputStream input, String outputDestination) throws IOException {
+        String[] fileparts = outputDestination.split("/");
+        String fileName = fileparts[fileparts.length-1];
+        String directory = outputDestination.replace(fileName,"");
+        File f = new File(directory);
+        if(!f.exists()){
+            f.mkdirs();
+        }
+        byte[] bytes = input.readAllBytes();
+        OutputStream os = new FileOutputStream(new File(outputDestination));
+        os.write(bytes);
     }
     @Override
     public byte[] GetObject(GetObjectInput input) throws RemoteException {
-        return null;
+        String path = remoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
+        byte[] data;
+        try {
+            data = DownloadBytesFromS3(path);
+        } catch (Exception e) {
+            throw new RemoteException(e.toString());
+        }
+        return data;
     }
     @Override
     public Payload GetPayload() throws RemoteException {
@@ -104,8 +172,6 @@ public class CcStoreS3 implements CcStore {
         } catch (Exception e){
             throw new RemoteException(e.toString());
         }
-        
-        
     }
     private byte[] DownloadBytesFromS3(String key) throws Exception{
         S3Object fullObject = null;
@@ -134,6 +200,18 @@ public class CcStoreS3 implements CcStore {
             throw e;
         }
     }
-
+    private void UploadToS3(String bucketName, String objectKey, byte[] fileBytes) {
+        try {
+            //File file = new File(objectPath);
+            InputStream stream = new ByteArrayInputStream(fileBytes);
+            ObjectMetadata meta = new ObjectMetadata();
+            meta.setContentLength(fileBytes.length);
+            PutObjectRequest putOb = new PutObjectRequest(bucketName, objectKey,stream, meta);
+            PutObjectResult response = awsS3.putObject(putOb);
+            System.out.println(response.getETag());
+        } catch (SdkBaseException e) {
+            System.out.println(e.getMessage());
+        }
+    }
 }
 
