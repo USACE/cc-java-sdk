@@ -1,6 +1,5 @@
 package usace.wat.plugin;
 
-import java.io.FilenameFilter;
 
 public class PullObjectInput {
     private String fileName;
