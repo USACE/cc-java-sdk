@@ -33,25 +33,18 @@ import usace.wat.plugin.Error.ErrorLevel;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 public final class PluginManager {
-    private Config _config;
-    private DataStore ws;
+    private CcStore cs;
     private String _manifestId;
     private Payload _payload;
     private Map<String,AmazonS3> _clients;
     private Boolean _hasInitalized = false;
     private Logger _logger;
-    private Config getConfig(){
-        return _config;
-    }
     private AmazonS3 getClient(String bucketname){
         return _clients.get(bucketname);
     }
     private Boolean getHasInitalized(){
         return _hasInitalized;
     } 
-    private void setConfig(Config cfg){
-        _config = cfg;
-    }
     private void setClient(String bucketname, AmazonS3 client){
         _clients.put(bucketname, client);
     }
@@ -64,94 +57,12 @@ public final class PluginManager {
     private void setInternalLogLevel(ErrorLevel level){
         _logger.setErrorLevel(level);
     }
-    PluginManager(){
+    public PluginManager(){
         String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
         _logger = new Logger(sender, ErrorLevel.WARN);
         _manifestId = System.getenv(EnvironmentVariables.CC_MANIFEST_ID);
-        _clients = new HashMap<>();
-    }
-    public static void InitalizeFromPath(String path){
-        //read from json to fill a configuration.
-        Config cfg = new Config();
-        File file = new File(path);
+        cs = new CcStoreS3();
 
-        final ObjectMapper mapper = new ObjectMapper();
-        try {
-            cfg = mapper.readValue(file, Config.class);
-        } catch (Exception e) {
-            Message message = Message.BuildMessage()
-            .withMessage("Error Parsing Configuration Contents: at path " + path + " with error " + e.getMessage())
-            .withErrorLevel(Level.ERROR)
-            .fromSender("Plugin Services")
-            .build();
-            Log(message);
-        }
-        Initalize(cfg);
-    }
-    public static void InitalizeFromEnv(){
-        Config cfg = new Config();
-        cfg.aws_configs = new AWSConfig[1];
-        AWSConfig acfg = new AWSConfig();
-        acfg.aws_access_key_id = System.getenv(EnvironmentVariables.AWS_ACCESS_KEY_ID);
-        acfg.aws_secret_access_key_id = System.getenv(EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
-        acfg.aws_region = System.getenv(EnvironmentVariables.AWS_DEFAULT_REGION);
-        acfg.aws_bucket = System.getenv(EnvironmentVariables.AWS_S3_BUCKET);
-        acfg.aws_mock = Boolean.parseBoolean(System.getenv("S3_MOCK"));//convert to boolean;
-        acfg.aws_endpoint = System.getenv("S3_ENDPOINT");
-        acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("S3_DISABLE_SSL"));//convert to bool?
-        acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv("S3_FORCE_PATH_STYLE"));//convert to bool
-        cfg.aws_configs[0] = acfg;
-        Initalize(cfg);
-    }
-    public static void Initalize(Config config){
-        Instance.setConfig(config);
-        for (AWSConfig awsConfig : config.aws_configs) {
-            //@TODO: remove this diagnostic print
-            Message message = Message.BuildMessage()
-            .withMessage("Configuration: " + awsConfig.toString())
-            .withErrorLevel(Level.INFO)
-            .fromSender("Plugin Services")
-            .build();
-            Log(message);
-            AddS3Bucket(awsConfig);
-        }
-        Instance.setHasInitalized(true);        
-    }
-    private static void AddS3Bucket(AWSConfig awsconfig) {
-        Regions clientRegion = Regions.valueOf(awsconfig.aws_region.toUpperCase().replace("-", "_"));
-        try {
-            AmazonS3 s3Client = null;
-            if(awsconfig.aws_mock){
-                AWSCredentials credentials = new BasicAWSCredentials(awsconfig.aws_access_key_id, awsconfig.aws_secret_access_key_id);
-                ClientConfiguration clientConfiguration = new ClientConfiguration();
-                clientConfiguration.setSignerOverride("AWSS3V4SignerType");
-                clientConfiguration.setProtocol(Protocol.HTTP);
-
-                s3Client = AmazonS3ClientBuilder
-                    .standard()
-                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(awsconfig.aws_endpoint, clientRegion.name()))
-                    .withPathStyleAccessEnabled(awsconfig.aws_force_path_style)
-                    .withClientConfiguration(clientConfiguration)
-                    .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                    .build();
-            }else{
-                AWSCredentials credentials = new BasicAWSCredentials(awsconfig.aws_access_key_id, awsconfig.aws_secret_access_key_id);
-                s3Client = AmazonS3ClientBuilder
-                    .standard()
-                    .withRegion(clientRegion)
-                    .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                    .build();                
-            }
-            Instance.setClient(awsconfig.aws_bucket, s3Client);
-        } catch (AmazonServiceException e) {
-            // The call was transmitted successfully, but Amazon S3 couldn't process 
-            // it, so it returned an error response.
-            e.printStackTrace();
-        } catch (SdkClientException e) {
-            // Amazon S3 couldn't be contacted for a response, or the client
-            // couldn't parse the response from Amazon S3.
-            e.printStackTrace();
-        }
     }
     private static void UploadToS3(String bucketName, String objectKey, byte[] fileBytes) {
         try {
@@ -166,43 +77,7 @@ public final class PluginManager {
             System.out.println(e.getMessage());
         }
     }
-    private static byte[] DownloadBytesFromS3(String bucketName, String key){
-        S3Object fullObject = null;
-        try {
-            // Get an object and print its contents.
-            Message message = Message.BuildMessage()
-            .withMessage("Downloading from S3: " + bucketName + key)
-            .withErrorLevel(Level.INFO)
-            .fromSender("Plugin Services")
-            .build();
-            Log(message);
-            fullObject = Instance.getClient(bucketName).getObject(new GetObjectRequest(bucketName, key));
-            System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
-            return fullObject.getObjectContent().readAllBytes();
-        }  catch (Exception e) {
-            Message message = Message.BuildMessage()
-            .withMessage("Error Downloading from S3: " + e.getMessage())
-            .withErrorLevel(Level.ERROR)
-            .fromSender("Plugin Services")
-            .build();
-            Log(message);
-        } finally {
-            // To ensure that the network connection doesn't remain open, close any open input streams.
-            if (fullObject != null) {
-                try {
-                    fullObject.close();
-                }  catch (Exception e) {
-                    Message message = Message.BuildMessage()
-                    .withMessage("Error Closing S3 object: " + e.getMessage())
-                    .withErrorLevel(Level.ERROR)
-                    .fromSender("Plugin Services")
-                    .build();
-                    Log(message);
-                }
-            }
-        }
-        return null;
-    }
+
     private static void writeInputStreamToDisk(InputStream input, String outputDestination) throws IOException {
         String[] fileparts = outputDestination.split("/");
         String fileName = fileparts[fileparts.length-1];
@@ -215,20 +90,7 @@ public final class PluginManager {
         OutputStream os = new FileOutputStream(new File(outputDestination));
         os.write(bytes);
     }
-    private static ModelPayload ReadYamlModelPayloadFromBytes(byte[] bytes) {
-        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); // jackson databind
-        try {
-            return mapper.readValue(bytes, ModelPayload.class);
-        } catch (Exception e) {
-            Message message = Message.BuildMessage()
-            .withMessage("Error Parsing Payload Contents: " + e.getMessage())
-            .withErrorLevel(Level.ERROR)
-            .fromSender("Plugin Services")
-            .build();
-            Log(message);
-        }
-        return new ModelPayload();
-    }
+
     public static ModelPayload LoadPayload(String filepath){
         //use primary s3 bucket to find the payload.
         if (!Instance.getHasInitalized()){
