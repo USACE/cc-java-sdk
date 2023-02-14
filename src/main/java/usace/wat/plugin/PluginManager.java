@@ -1,14 +1,10 @@
 package usace.wat.plugin;
  
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.InputStreamReader;
+import java.io.OutputStream;
 import java.rmi.RemoteException;
-import java.util.Map;
-
 import usace.wat.plugin.Error.ErrorLevel;
 
 public final class PluginManager {
@@ -23,9 +19,27 @@ public final class PluginManager {
         cs = new CcStoreS3();
         try {
             _payload = cs.GetPayload();
+            int i = 0;
+            for (DataStore store : _payload.getStores()) {
+                switch (store.getStoreType()){
+                    case S3:
+                        store.setSession(new FileDataStoreS3(store));
+                        _payload.setStore(i, store);
+                        break;
+                    case WS://does java work with fallthrough?
+                    case RDBMS:
+                        System.out.println("WS and RDBMS session instantiation is the responsibility of the plugin.");
+                        break;
+                    default:
+                        System.out.println("Invalid Store type");//what type was provided?
+                        break;
+                }
+                i ++;
+            }
         } catch (RemoteException e) {
             e.printStackTrace();
         }
+        
     }
     public Payload getPayload(){
         return _payload;
@@ -59,6 +73,22 @@ public final class PluginManager {
             e.printStackTrace();
             return null;
         }
+    }
+    public boolean putFile(byte[] data, DataSource ds, int path){
+        FileDataStore store = getFileStore(ds.getStoreName());
+        return store.Put(new ByteArrayInputStream(data), ds.getPaths()[path]);
+    }
+    public boolean fileWriter(InputStream inputstream, DataSource destDs, int destPath){
+        FileDataStore store = getFileStore(destDs.getStoreName());
+        return store.Put(inputstream, destDs.getPaths()[destPath]);
+    }
+    public InputStream fileReader(DataSource ds, int path){
+        FileDataStore store = getFileStore(ds.getStoreName());
+        return store.Get(ds.getPaths()[path]);
+    }
+    public InputStream fileReaderByName(String dataSourceName, int path){
+        DataSource ds = findDataSource(dataSourceName, getInputDataSources());
+        return fileReader(ds, path);
     }
     public void setLogLevel(ErrorLevel level){
         _logger.setErrorLevel(level);

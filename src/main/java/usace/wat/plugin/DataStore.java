@@ -34,5 +34,8 @@ public class DataStore {
     public Object getSession(){
         return session;
     }
+    public void setSession(Object session){
+        this.session = session;
+    }
 
 }

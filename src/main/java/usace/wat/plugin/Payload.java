@@ -17,6 +17,9 @@ public class Payload {
     public DataStore[] getStores(){
         return stores;
     }
+    public void setStore(int index, DataStore store){
+        stores[index] = store;
+    }
     public DataSource[] getInputs(){
         return inputs;
     }

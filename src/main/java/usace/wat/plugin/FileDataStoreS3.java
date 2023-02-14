@@ -29,6 +29,7 @@ public class FileDataStoreS3 implements FileDataStore {
     StoreType storeType;
     AmazonS3 awsS3;
     AWSConfig config;
+    private static String S3ROOT = "root";
     @Override
     public Boolean Copy(FileDataStore destStore, String srcPath, String destPath) {
         byte[] data;
@@ -83,7 +84,7 @@ public class FileDataStoreS3 implements FileDataStore {
         }
     }
 
-    public FileDataStoreS3(String remoteRootPath){
+    public FileDataStoreS3(DataStore ds){
         AWSConfig acfg = new AWSConfig();
         acfg.aws_access_key_id = System.getenv(EnvironmentVariables.AWS_ACCESS_KEY_ID);
         acfg.aws_secret_access_key_id = System.getenv(EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
@@ -129,7 +130,12 @@ public class FileDataStoreS3 implements FileDataStore {
             e.printStackTrace();
         }
         storeType = StoreType.S3;
-        this.remoteRootPath = remoteRootPath;
+        String tmpRoot = ds.getParameters().get(FileDataStoreS3.S3ROOT);
+        if (tmpRoot == ""){
+            //error out?
+            System.out.print("Missing S3 Root Paramter. Cannot create the store.");
+        }
+        this.remoteRootPath = tmpRoot;
     }
     private byte[] GetObject(String path) throws RemoteException {
         byte[] data;
