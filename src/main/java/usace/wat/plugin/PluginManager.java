@@ -7,12 +7,18 @@ import java.io.OutputStream;
 import java.rmi.RemoteException;
 import usace.wat.plugin.Error.ErrorLevel;
 
+import java.util.ArrayList;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
+
 public final class PluginManager {
     private CcStore cs;
     private String _manifestId;
     private Payload _payload;
     private Logger _logger;
+    Pattern p;
     public PluginManager(){
+        p = Pattern.compile("{([^{}]*)}");
         String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
         _logger = new Logger(sender, ErrorLevel.WARN);
         _manifestId = System.getenv(EnvironmentVariables.CC_MANIFEST_ID);
@@ -36,10 +42,45 @@ public final class PluginManager {
                 }
                 i ++;
             }
+            substitutePathVariables();
         } catch (RemoteException e) {
             e.printStackTrace();
         }
         
+    }
+    private void substitutePathVariables() {
+        for (DataSource ds : _payload.getInputs()){
+            for(String path : ds.getPaths()){
+                substituteDataSourcePath(path);//is this a pointer? test
+            }
+            
+        }
+        for (DataSource ds : _payload.getOutputs()){
+            for(String path: ds.getPaths()){
+                substituteDataSourcePath(path);//is this a pointer? test
+            }
+        }
+    }
+    private void substituteDataSourcePath(String path) {
+        Matcher m = p.matcher(path);
+        while(m.find()){
+            String result = m.group();;
+            String[] parts = result.split("::", 0);
+            String prefix = parts[0];
+            switch(prefix){
+                case "ENV":
+                    String val = System.getenv(parts[1]);
+                    path = path.replaceFirst(result, val);//?
+                break;
+                case "ATTR":
+                    String valattr = _payload.getAttributes().get(parts[1]).toString();
+                    path = path.replaceFirst(result, valattr);//?
+                break;
+                default:
+                break;
+            }
+        }
+
     }
     public Payload getPayload(){
         return _payload;
