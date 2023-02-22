@@ -86,14 +86,14 @@ public class FileDataStoreS3 implements FileDataStore {
 
     public FileDataStoreS3(DataStore ds){
         AWSConfig acfg = new AWSConfig();
-        acfg.aws_access_key_id = System.getenv(EnvironmentVariables.AWS_ACCESS_KEY_ID);
-        acfg.aws_secret_access_key_id = System.getenv(EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
-        acfg.aws_region = System.getenv(EnvironmentVariables.AWS_DEFAULT_REGION);
-        acfg.aws_bucket = System.getenv(EnvironmentVariables.AWS_S3_BUCKET);
-        acfg.aws_mock = Boolean.parseBoolean(System.getenv("S3_MOCK"));//convert to boolean;
-        acfg.aws_endpoint = System.getenv("S3_ENDPOINT");
-        acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("S3_DISABLE_SSL"));//convert to bool?
-        acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv("S3_FORCE_PATH_STYLE"));//convert to bool
+        acfg.aws_access_key_id = System.getenv(ds.getDsProfile() + EnvironmentVariables.AWS_ACCESS_KEY_ID);
+        acfg.aws_secret_access_key_id = System.getenv(ds.getDsProfile() + EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
+        acfg.aws_region = System.getenv(ds.getDsProfile() + EnvironmentVariables.AWS_DEFAULT_REGION);
+        acfg.aws_bucket = System.getenv(ds.getDsProfile() + EnvironmentVariables.AWS_S3_BUCKET);
+        acfg.aws_mock = false;//Boolean.parseBoolean(System.getenv("S3_MOCK"));//convert to boolean;
+        //acfg.aws_endpoint = System.getenv("S3_ENDPOINT");
+        //acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("S3_DISABLE_SSL"));//convert to bool?
+        //acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv("S3_FORCE_PATH_STYLE"));//convert to bool
         config = acfg;
         Regions clientRegion = Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
         try {
