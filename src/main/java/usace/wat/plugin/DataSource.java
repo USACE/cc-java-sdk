@@ -2,23 +2,23 @@ package usace.wat.plugin;
 import com.fasterxml.jackson.annotation.JsonProperty;
 public class DataSource {
     @JsonProperty
-    private String name;
+    private String Name;
     @JsonProperty
-    private String id;
+    private String ID;
     @JsonProperty
-    private String store_name;
+    private String StoreName;
     @JsonProperty
-    private String[] paths;
+    private String[] Paths;
     public String getId(){
-        return id;
+        return ID;
     }
     public String getName(){
-        return name;
+        return Name;
     }
     public String[] getPaths(){
-        return paths;
+        return Paths;
     }
     public String getStoreName(){
-        return store_name;
+        return StoreName;
     }
 }
