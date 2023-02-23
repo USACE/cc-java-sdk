@@ -46,6 +46,7 @@ public class CcStoreS3 implements CcStore {
         AWSConfig acfg = new AWSConfig();
         acfg.aws_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID);
         acfg.aws_secret_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
+        System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION);
         acfg.aws_region = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION);
         acfg.aws_bucket = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_S3_BUCKET);
         acfg.aws_mock = false; //Boolean.parseBoolean(System.getenv("S3_MOCK"));//convert to boolean;
@@ -53,6 +54,7 @@ public class CcStoreS3 implements CcStore {
         //acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("S3_DISABLE_SSL"));//convert to bool?
         //acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv("S3_FORCE_PATH_STYLE"));//convert to bool
         config = acfg;
+        System.out.println(config.aws_region);
         Regions clientRegion = Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
         try {
             AmazonS3 s3Client = null;
