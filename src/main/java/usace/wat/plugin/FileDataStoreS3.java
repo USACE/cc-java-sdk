@@ -148,6 +148,8 @@ public class FileDataStoreS3 implements FileDataStore {
     }
     private byte[] DownloadBytesFromS3(String key) throws Exception{
         S3Object fullObject = null;
+        System.out.println(key);
+        System.out.println(remoteRootPath);
         try {
             fullObject = awsS3.getObject(new GetObjectRequest(remoteRootPath, key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
