@@ -51,17 +51,17 @@ public final class PluginManager {
     private void substitutePathVariables() {
         for (DataSource ds : _payload.getInputs()){
             for(String path : ds.getPaths()){
-                substituteDataSourcePath(path);//is this a pointer? test
+                path = substituteDataSourcePath(path);//is this a pointer? test
             }
             
         }
         for (DataSource ds : _payload.getOutputs()){
             for(String path: ds.getPaths()){
-                substituteDataSourcePath(path);//is this a pointer? test
+                path = substituteDataSourcePath(path);//is this a pointer? test
             }
         }
     }
-    private void substituteDataSourcePath(String path) {
+    private String substituteDataSourcePath(String path) {
         Matcher m = p.matcher(path);
         while(m.find()){
             String result = m.group();
@@ -82,7 +82,7 @@ public final class PluginManager {
                 break;
             }
         }
-
+        return path;
     }
     public Payload getPayload(){
         return _payload;

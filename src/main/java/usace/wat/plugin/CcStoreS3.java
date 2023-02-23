@@ -99,7 +99,7 @@ public class CcStoreS3 implements CcStore {
     }
     @Override
     public boolean PutObject(PutObjectInput input) {
-        String path = remoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
+        String path = Constants.RemoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
         byte[] data;
         switch(input.getObjectState()){
             case LocalDisk:
@@ -126,7 +126,7 @@ public class CcStoreS3 implements CcStore {
     }
     @Override
     public boolean PullObject(PullObjectInput input) {
-        String path = remoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
+        String path = Constants.RemoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
         byte[] data;
         String localPath = input.getDestRootPath() + "/" + input.getFileName() + "." + input.getFileExtension();
         try {
@@ -155,7 +155,7 @@ public class CcStoreS3 implements CcStore {
     }
     @Override
     public byte[] GetObject(GetObjectInput input) throws RemoteException {
-        String path = remoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
+        String path = Constants.RemoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
         byte[] data;
         try {
             data = DownloadBytesFromS3(path);
