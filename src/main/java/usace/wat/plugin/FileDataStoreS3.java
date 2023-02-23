@@ -137,6 +137,7 @@ public class FileDataStoreS3 implements FileDataStore {
             System.out.print("Missing S3 Root Paramter. Cannot create the store.");
         }
         this.bucket = config.aws_bucket;
+        tmpRoot = tmpRoot.replaceFirst("^/+", "");
         this.postFix = tmpRoot;
     }
     private byte[] GetObject(String path) throws RemoteException {
