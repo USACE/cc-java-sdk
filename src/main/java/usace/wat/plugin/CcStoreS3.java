@@ -28,6 +28,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
+import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
@@ -172,7 +173,7 @@ public class CcStoreS3 implements CcStore {
         String filepath = remoteRootPath + "/" + manifestId + "/" + Constants.PayloadFileName;
         try{
             byte[] body = DownloadBytesFromS3(filepath);
-            return ReadYamlModelPayloadFromBytes(body);
+            return ReadJsonModelPayloadFromBytes(body);
         } catch (Exception e){
             throw new RemoteException(e.toString());
         }
@@ -198,8 +199,8 @@ public class CcStoreS3 implements CcStore {
             }
         }
     }
-    private Payload ReadYamlModelPayloadFromBytes(byte[] bytes) throws Exception {
-        final ObjectMapper mapper = new ObjectMapper(new YAMLFactory()); // jackson databind
+    private Payload ReadJsonModelPayloadFromBytes(byte[] bytes) throws Exception {
+        final ObjectMapper mapper = new ObjectMapper(new JsonFactory()); // jackson databind
         try {
             return mapper.readValue(bytes, Payload.class);
         } catch (Exception e) {
