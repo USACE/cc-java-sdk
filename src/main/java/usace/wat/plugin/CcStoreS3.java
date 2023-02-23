@@ -3,7 +3,6 @@ package usace.wat.plugin;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -18,7 +17,6 @@ import com.amazonaws.SdkClientException;
 import com.amazonaws.auth.AWSCredentials;
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.auth.SdkClock.Instance;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
@@ -28,9 +26,7 @@ import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
 import com.amazonaws.services.s3.model.PutObjectResult;
 import com.amazonaws.services.s3.model.S3Object;
-import com.fasterxml.jackson.core.JsonFactory;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.dataformat.yaml.YAMLFactory;
 
 public class CcStoreS3 implements CcStore {
     String localRootPath;
@@ -200,7 +196,7 @@ public class CcStoreS3 implements CcStore {
         }
     }
     private Payload ReadJsonModelPayloadFromBytes(byte[] bytes) throws Exception {
-        final ObjectMapper mapper = new ObjectMapper(new JsonFactory()); // jackson databind
+        final ObjectMapper mapper = new ObjectMapper(); // jackson databind
         try {
             return mapper.readValue(bytes, Payload.class);
         } catch (Exception e) {
