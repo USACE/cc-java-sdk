@@ -49,15 +49,14 @@ public final class PluginManager {
         
     }
     private void substitutePathVariables() {
-        for (DataSource ds : _payload.getInputs()){
-            for(String path : ds.getPaths()){
-                path = substituteDataSourcePath(path);//is this a pointer? test
+        for (int i= 0; i<_payload.getInputs().length; i++){
+            for(int j=0; j<_payload.getInputs()[i].getPaths().length;j++){
+                _payload.getInputs()[i].getPaths()[j] = substituteDataSourcePath(_payload.getInputs()[i].getPaths()[j]);
             }
-            
         }
-        for (DataSource ds : _payload.getOutputs()){
-            for(String path: ds.getPaths()){
-                path = substituteDataSourcePath(path);//is this a pointer? test
+        for (int i= 0; i<_payload.getOutputs().length; i++){
+            for(int j=0; j<_payload.getOutputs()[i].getPaths().length;j++){
+                _payload.getOutputs()[i].getPaths()[j] = substituteDataSourcePath(_payload.getOutputs()[i].getPaths()[j]);
             }
         }
     }
