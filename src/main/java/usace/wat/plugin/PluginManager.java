@@ -87,7 +87,7 @@ public final class PluginManager {
         return _payload;
     }
     public FileDataStore getFileStore(String storeName){
-        return (FileDataStore) findDataStore(storeName);//check for nil?
+        return (FileDataStore) findDataStore(storeName).getSession();//check for nil?
     }
     public DataStore getStore(String storeName){
         return findDataStore(storeName);
