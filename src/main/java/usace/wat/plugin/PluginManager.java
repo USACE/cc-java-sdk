@@ -70,12 +70,12 @@ public final class PluginManager {
             switch(prefix){
                 case "ENV":
                     String val = System.getenv(parts[1]);
-                    path = path.replaceFirst("{"+result+"}", val);//?
+                    path = path.replaceFirst("\\{"+result+"\\}", val);//?
                     m = p.matcher(path);
                 break;
                 case "ATTR":
                     String valattr = _payload.getAttributes().get(parts[1]).toString();
-                    path = path.replaceFirst("{"+result+"}", valattr);//?
+                    path = path.replaceFirst("\\{"+result+"\\}", valattr);//?
                     m = p.matcher(path);
                 break;
                 default:
