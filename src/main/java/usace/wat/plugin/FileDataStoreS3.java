@@ -25,7 +25,8 @@ import com.amazonaws.services.s3.model.S3Object;
 
 
 public class FileDataStoreS3 implements FileDataStore {
-    String remoteRootPath;
+    String bucket;
+    String postFix;
     StoreType storeType;
     AmazonS3 awsS3;
     AWSConfig config;
@@ -135,7 +136,8 @@ public class FileDataStoreS3 implements FileDataStore {
             //error out?
             System.out.print("Missing S3 Root Paramter. Cannot create the store.");
         }
-        this.remoteRootPath = config.aws_bucket ;
+        this.bucket = config.aws_bucket;
+        this.postFix = tmpRoot;
     }
     private byte[] GetObject(String path) throws RemoteException {
         byte[] data;
@@ -148,10 +150,10 @@ public class FileDataStoreS3 implements FileDataStore {
     }
     private byte[] DownloadBytesFromS3(String key) throws Exception{
         S3Object fullObject = null;
-        System.out.println(key);
-        System.out.println(remoteRootPath);
+        System.out.println(postFix + "/" + key);
+        System.out.println(bucket);
         try {
-            fullObject = awsS3.getObject(new GetObjectRequest(remoteRootPath, key));
+            fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
             return fullObject.getObjectContent().readAllBytes();
         }  catch (Exception e) {
