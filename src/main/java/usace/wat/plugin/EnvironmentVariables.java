@@ -9,6 +9,6 @@ public final class EnvironmentVariables {
     public static String CC_PAYLOAD_FORMATTED = "CC_PAYLOAD_FORMATTED";
     public static String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
     public static String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
-    public static String AWS_DEFAULT_REGION = "CC_DEFAULT_REGION";
+    public static String AWS_DEFAULT_REGION = "AWS_DEFAULT_REGION";
     public static String AWS_S3_BUCKET = "AWS_S3_BUCKET";
 }
