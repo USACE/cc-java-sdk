@@ -91,7 +91,7 @@ public class CcStoreS3 implements CcStore {
         storeType = StoreType.S3;
         manifestId = System.getenv(EnvironmentVariables.CC_MANIFEST_ID);
         localRootPath = Constants.LocalRootPath;
-        remoteRootPath = "/"+ config.aws_bucket + Constants.RemoteRootPath;
+        remoteRootPath =  config.aws_bucket;// + Constants.RemoteRootPath;
     }
     @Override
     public boolean HandlesDataStoreType(StoreType storeType){
@@ -166,7 +166,7 @@ public class CcStoreS3 implements CcStore {
     }
     @Override
     public Payload GetPayload() throws RemoteException {
-        String filepath = "/" + manifestId + "/" + Constants.PayloadFileName;
+        String filepath = Constants.RemoteRootPath + "/" + manifestId + "/" + Constants.PayloadFileName;
         try{
             byte[] body = DownloadBytesFromS3(filepath);
             return ReadJsonModelPayloadFromBytes(body);
