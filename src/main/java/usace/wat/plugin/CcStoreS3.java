@@ -166,7 +166,7 @@ public class CcStoreS3 implements CcStore {
     }
     @Override
     public Payload GetPayload() throws RemoteException {
-        String filepath = remoteRootPath + "/" + manifestId + "/" + Constants.PayloadFileName;
+        String filepath = "/" + manifestId + "/" + Constants.PayloadFileName;
         try{
             byte[] body = DownloadBytesFromS3(filepath);
             return ReadJsonModelPayloadFromBytes(body);
