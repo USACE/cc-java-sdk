@@ -44,10 +44,10 @@ public class CcStoreS3 implements CcStore {
     }
     public CcStoreS3(){
         AWSConfig acfg = new AWSConfig();
-        acfg.aws_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + EnvironmentVariables.AWS_ACCESS_KEY_ID);
-        acfg.aws_secret_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
-        acfg.aws_region = System.getenv(EnvironmentVariables.CC_PROFILE + EnvironmentVariables.AWS_DEFAULT_REGION);
-        acfg.aws_bucket = System.getenv(EnvironmentVariables.CC_PROFILE + EnvironmentVariables.AWS_S3_BUCKET);
+        acfg.aws_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID);
+        acfg.aws_secret_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
+        acfg.aws_region = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION);
+        acfg.aws_bucket = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_S3_BUCKET);
         acfg.aws_mock = false; //Boolean.parseBoolean(System.getenv("S3_MOCK"));//convert to boolean;
         //acfg.aws_endpoint = System.getenv("S3_ENDPOINT");
         //acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("S3_DISABLE_SSL"));//convert to bool?
