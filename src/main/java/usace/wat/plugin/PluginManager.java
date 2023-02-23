@@ -18,7 +18,7 @@ public final class PluginManager {
     private Logger _logger;
     Pattern p;
     public PluginManager(){
-        p = Pattern.compile("{([^{}]*)}");
+        p = Pattern.compile("(?<=\\{).+?(?=\\})");
         String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
         _logger = new Logger(sender, ErrorLevel.WARN);
         _manifestId = System.getenv(EnvironmentVariables.CC_MANIFEST_ID);
@@ -64,17 +64,19 @@ public final class PluginManager {
     private void substituteDataSourcePath(String path) {
         Matcher m = p.matcher(path);
         while(m.find()){
-            String result = m.group();;
+            String result = m.group();
             String[] parts = result.split("::", 0);
             String prefix = parts[0];
             switch(prefix){
                 case "ENV":
                     String val = System.getenv(parts[1]);
-                    path = path.replaceFirst(result, val);//?
+                    path = path.replaceFirst("{"+result+"}", val);//?
+                    m = p.matcher(path);
                 break;
                 case "ATTR":
                     String valattr = _payload.getAttributes().get(parts[1]).toString();
-                    path = path.replaceFirst(result, valattr);//?
+                    path = path.replaceFirst("{"+result+"}", valattr);//?
+                    m = p.matcher(path);
                 break;
                 default:
                 break;
