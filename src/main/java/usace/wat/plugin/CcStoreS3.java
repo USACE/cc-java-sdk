@@ -178,6 +178,10 @@ public class CcStoreS3 implements CcStore {
         S3Object fullObject = null;
         System.out.println(key);
         System.out.println(remoteRootPath);
+        boolean spaces = key.contains(" ");
+        if(spaces){
+            key = "\""+ key + "\""; 
+        }
         try {
             fullObject = awsS3.getObject(new GetObjectRequest(remoteRootPath, key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
