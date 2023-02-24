@@ -7,8 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.rmi.RemoteException;
-
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
@@ -21,6 +19,7 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
+import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.GetObjectRequest;
 import com.amazonaws.services.s3.model.ObjectMetadata;
 import com.amazonaws.services.s3.model.PutObjectRequest;
@@ -154,24 +153,24 @@ public class CcStoreS3 implements CcStore {
         os.write(bytes);
     }
     @Override
-    public byte[] GetObject(GetObjectInput input) throws RemoteException {
+    public byte[] GetObject(GetObjectInput input) throws AmazonS3Exception {
         String path = Constants.RemoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
         byte[] data;
         try {
             data = DownloadBytesFromS3(path);
         } catch (Exception e) {
-            throw new RemoteException(e.toString());
+            throw new AmazonS3Exception(e.toString());
         }
         return data;
     }
     @Override
-    public Payload GetPayload() throws RemoteException {
+    public Payload GetPayload() throws AmazonS3Exception {
         String filepath = Constants.RemoteRootPath + "/" + manifestId + "/" + Constants.PayloadFileName;
         try{
             byte[] body = DownloadBytesFromS3(filepath);
             return ReadJsonModelPayloadFromBytes(body);
         } catch (Exception e){
-            throw new RemoteException(e.toString());
+            throw new AmazonS3Exception(e.toString());
         }
     }
     private byte[] DownloadBytesFromS3(String key) throws Exception{

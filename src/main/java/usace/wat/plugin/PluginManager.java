@@ -3,17 +3,13 @@ package usace.wat.plugin;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import java.io.OutputStream;
-import java.rmi.RemoteException;
 import usace.wat.plugin.Error.ErrorLevel;
 
-import java.util.ArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 public final class PluginManager {
     private CcStore cs;
-    private String _manifestId;
     private Payload _payload;
     private Logger _logger;
     Pattern p;
@@ -21,7 +17,6 @@ public final class PluginManager {
         p = Pattern.compile("(?<=\\{).+?(?=\\})");
         String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
         _logger = new Logger(sender, ErrorLevel.WARN);
-        _manifestId = System.getenv(EnvironmentVariables.CC_MANIFEST_ID);
         cs = new CcStoreS3();
         try {
             _payload = cs.GetPayload();
@@ -43,7 +38,7 @@ public final class PluginManager {
                 i ++;
             }
             substitutePathVariables();
-        } catch (RemoteException e) {
+        } catch (Exception e) {
             e.printStackTrace();
         }
         
