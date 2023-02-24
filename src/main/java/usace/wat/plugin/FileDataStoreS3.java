@@ -95,6 +95,10 @@ public class FileDataStoreS3 implements FileDataStore {
         //acfg.aws_endpoint = System.getenv("S3_ENDPOINT");
         //acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("S3_DISABLE_SSL"));//convert to bool?
         //acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv("S3_FORCE_PATH_STYLE"));//convert to bool
+        System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_DEFAULT_REGION+"::"+config.aws_region);
+        System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID+"::"+config.aws_access_key_id);
+        System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY+"::"+config.aws_secret_access_key_id);
+        System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_S3_BUCKET+"::"+config.aws_bucket);
         config = acfg;
         Regions clientRegion = Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
         try {
@@ -151,7 +155,8 @@ public class FileDataStoreS3 implements FileDataStore {
     }
     private byte[] DownloadBytesFromS3(String key) throws Exception{
         S3Object fullObject = null;
-        System.out.println(postFix + "/" + key);
+        key = postFix + "/" + key;
+        System.out.println(key);
         System.out.println(bucket);
         try {
             fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
