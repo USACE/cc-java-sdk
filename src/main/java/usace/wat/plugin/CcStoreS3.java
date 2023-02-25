@@ -58,6 +58,11 @@ public class CcStoreS3 implements CcStore {
         try {
             AmazonS3 s3Client = null;
             if(config.aws_mock){
+                System.out.println("mocking s3 with minio");
+                System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_MOCK::"+config.aws_mock);
+                System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_ENDPOINT::"+config.aws_endpoint);
+                System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_DISABLE_SSL::"+config.aws_disable_ssl);
+                System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_FORCE_PATH_STYLE::"+config.aws_force_path_style);
                 AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
                 ClientConfiguration clientConfiguration = new ClientConfiguration();
                 clientConfiguration.setSignerOverride("AWSS3V4SignerType");
