@@ -29,14 +29,15 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 public class CcStoreS3 implements CcStore {
     String localRootPath;
-    String remoteRootPath;
+    String bucket;
+    String root;
     String manifestId;
     StoreType storeType;
     AmazonS3 awsS3;
     AWSConfig config;
     @Override
     public String RootPath() {
-        return remoteRootPath;
+        return bucket;
     }
     public CcStoreS3(){
         AWSConfig acfg = new AWSConfig();
@@ -44,10 +45,10 @@ public class CcStoreS3 implements CcStore {
         acfg.aws_secret_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
         acfg.aws_region = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION);
         acfg.aws_bucket = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_S3_BUCKET);
-        acfg.aws_mock = false; //Boolean.parseBoolean(System.getenv("S3_MOCK"));//convert to boolean;
-        //acfg.aws_endpoint = System.getenv("S3_ENDPOINT");
-        //acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("S3_DISABLE_SSL"));//convert to bool?
-        //acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv("S3_FORCE_PATH_STYLE"));//convert to bool
+        acfg.aws_mock = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_MOCK"));//convert to boolean;
+        acfg.aws_endpoint = System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_ENDPOINT");
+        acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_DISABLE_SSL"));//convert to bool?
+        acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_FORCE_PATH_STYLE"));//convert to bool
         config = acfg;
         System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION+"::"+config.aws_region);
         System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID+"::"+config.aws_access_key_id);
@@ -90,7 +91,8 @@ public class CcStoreS3 implements CcStore {
         storeType = StoreType.S3;
         manifestId = System.getenv(EnvironmentVariables.CC_MANIFEST_ID);
         localRootPath = Constants.LocalRootPath;
-        remoteRootPath =  config.aws_bucket;// + Constants.RemoteRootPath;
+        bucket =  config.aws_bucket;// + Constants.RemoteRootPath;
+        root = System.getenv(EnvironmentVariables.CC_ROOT);
     }
     @Override
     public boolean HandlesDataStoreType(StoreType storeType){
@@ -98,7 +100,7 @@ public class CcStoreS3 implements CcStore {
     }
     @Override
     public boolean PutObject(PutObjectInput input) {
-        String path = Constants.RemoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
+        String path = root + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
         byte[] data;
         switch(input.getObjectState()){
             case LocalDisk:
@@ -125,7 +127,7 @@ public class CcStoreS3 implements CcStore {
     }
     @Override
     public boolean PullObject(PullObjectInput input) {
-        String path = Constants.RemoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
+        String path = root + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
         byte[] data;
         String localPath = input.getDestRootPath() + "/" + input.getFileName() + "." + input.getFileExtension();
         try {
@@ -154,7 +156,7 @@ public class CcStoreS3 implements CcStore {
     }
     @Override
     public byte[] GetObject(GetObjectInput input) throws AmazonS3Exception {
-        String path = Constants.RemoteRootPath + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
+        String path = root + "/" + manifestId + "/" + input.getFileName() + "." + input.getFileExtension();
         byte[] data;
         try {
             data = DownloadBytesFromS3(path);
@@ -165,7 +167,7 @@ public class CcStoreS3 implements CcStore {
     }
     @Override
     public Payload GetPayload() throws AmazonS3Exception {
-        String filepath = Constants.RemoteRootPath + "/" + manifestId + "/" + Constants.PayloadFileName;
+        String filepath = root + "/" + manifestId + "/" + Constants.PayloadFileName;
         try{
             byte[] body = DownloadBytesFromS3(filepath);
             return ReadJsonModelPayloadFromBytes(body);
@@ -180,9 +182,9 @@ public class CcStoreS3 implements CcStore {
             key = "\""+ key + "\""; 
         }
         System.out.println(key);
-        System.out.println(remoteRootPath);
+        System.out.println(bucket);
         try {
-            fullObject = awsS3.getObject(new GetObjectRequest(remoteRootPath, key));
+            fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
             return fullObject.getObjectContent().readAllBytes();
         }  catch (Exception e) {

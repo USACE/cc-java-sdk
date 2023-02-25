@@ -91,10 +91,10 @@ public class FileDataStoreS3 implements FileDataStore {
         acfg.aws_secret_access_key_id = System.getenv(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
         acfg.aws_region = System.getenv(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_DEFAULT_REGION);
         acfg.aws_bucket = System.getenv(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_S3_BUCKET);
-        acfg.aws_mock = false;//Boolean.parseBoolean(System.getenv("S3_MOCK"));//convert to boolean;
-        //acfg.aws_endpoint = System.getenv("S3_ENDPOINT");
-        //acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv("S3_DISABLE_SSL"));//convert to bool?
-        //acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv("S3_FORCE_PATH_STYLE"));//convert to bool
+        acfg.aws_mock = Boolean.parseBoolean(System.getenv(ds.getDsProfile() + "_"+ "S3_MOCK"));//convert to boolean;
+        acfg.aws_endpoint = System.getenv(ds.getDsProfile() + "_"+ "S3_ENDPOINT");
+        acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv(ds.getDsProfile() + "_"+ "S3_DISABLE_SSL"));//convert to bool?
+        acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv(ds.getDsProfile() + "_"+ "S3_FORCE_PATH_STYLE"));//convert to bool
         config = acfg;
         System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_DEFAULT_REGION+"::"+config.aws_region);
         System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID+"::"+config.aws_access_key_id);

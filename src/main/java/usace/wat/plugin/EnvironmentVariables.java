@@ -4,6 +4,7 @@ public final class EnvironmentVariables {
     public static String CC_MANIFEST_ID = "CC_MANIFEST_ID";
     public static String CC_EVENT_NUMBER = "CC_EVENT_NUMBER";
     public static String CC_EVENT_ID = "CC_EVENT_ID";
+    public static String CC_ROOT = "CC_ROOT";
     public static String CC_PLUGIN_DEFINITION = "CC_PLUGIN_DEFINITION";
     public static String CC_PROFILE = "CC";
     public static String CC_PAYLOAD_FORMATTED = "CC_PAYLOAD_FORMATTED";
