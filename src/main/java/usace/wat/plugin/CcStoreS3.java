@@ -45,7 +45,7 @@ public class CcStoreS3 implements CcStore {
         acfg.aws_secret_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
         acfg.aws_region = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION);
         acfg.aws_bucket = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_S3_BUCKET);
-        acfg.aws_mock = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_MOCK"));//convert to boolean;
+        acfg.aws_mock = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_MOCK"));//convert to boolean;//stringformat
         acfg.aws_endpoint = System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_ENDPOINT");
         acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_DISABLE_SSL"));//convert to bool?
         acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_FORCE_PATH_STYLE"));//convert to bool

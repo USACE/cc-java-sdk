@@ -61,7 +61,7 @@ public class FileDataStoreS3 implements FileDataStore {
         byte[] bytes;
         try {
             bytes = data.readAllBytes();
-            return UploadToS3(config.aws_bucket, path, bytes);
+            return UploadToS3(config.aws_bucket, postFix + "/" + path, bytes);
         } catch (IOException e) {
             e.printStackTrace();
             return false;
@@ -71,7 +71,7 @@ public class FileDataStoreS3 implements FileDataStore {
 
     @Override
     public Boolean Delete(String path) {
-        DeleteObjectRequest dor = new DeleteObjectRequest(config.aws_bucket,path);
+        DeleteObjectRequest dor = new DeleteObjectRequest(config.aws_bucket,postFix + "/" + path);
         try{
             awsS3.deleteObject(dor);
             return true;
