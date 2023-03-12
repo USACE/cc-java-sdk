@@ -140,8 +140,9 @@ public final class PluginManager {
         _logger.ReportStatus(report);
     }
     public int EventNumber(){
-        Object result = _payload.getAttributes().get(EnvironmentVariables.CC_EVENT_NUMBER);
-        int eventNumber = Integer.parseInt(result.toString());
+        //Object result = _payload.getAttributes().get(EnvironmentVariables.CC_EVENT_NUMBER);
+        String val = System.getenv(EnvironmentVariables.CC_EVENT_NUMBER);
+        int eventNumber = Integer.parseInt(val);
         return eventNumber;
     }
     private DataSource findDataSource(String name, DataSource[] dataSources){
