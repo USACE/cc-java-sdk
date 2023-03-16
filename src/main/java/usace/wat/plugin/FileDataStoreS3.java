@@ -96,10 +96,10 @@ public class FileDataStoreS3 implements FileDataStore {
         acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv(ds.getDsProfile() + "_"+ "S3_DISABLE_SSL"));//convert to bool?
         acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv(ds.getDsProfile() + "_"+ "S3_FORCE_PATH_STYLE"));//convert to bool
         config = acfg;
-        System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_DEFAULT_REGION+"::"+config.aws_region);
-        System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID+"::"+config.aws_access_key_id);
-        System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY+"::"+config.aws_secret_access_key_id);
-        System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_S3_BUCKET+"::"+config.aws_bucket);
+        //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_DEFAULT_REGION+"::"+config.aws_region);
+        //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID+"::"+config.aws_access_key_id);
+        //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY+"::"+config.aws_secret_access_key_id);
+        //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_S3_BUCKET+"::"+config.aws_bucket);
         
         Regions clientRegion = Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
         try {

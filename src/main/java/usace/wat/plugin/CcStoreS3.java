@@ -50,19 +50,19 @@ public class CcStoreS3 implements CcStore {
         acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_DISABLE_SSL"));//convert to bool?
         acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_FORCE_PATH_STYLE"));//convert to bool
         config = acfg;
-        System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION+"::"+config.aws_region);
-        System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID+"::"+config.aws_access_key_id);
-        System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY+"::"+config.aws_secret_access_key_id);
-        System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_S3_BUCKET+"::"+config.aws_bucket);
+        //System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION+"::"+config.aws_region);
+        //System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID+"::"+config.aws_access_key_id);
+        //System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY+"::"+config.aws_secret_access_key_id);
+        //System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_S3_BUCKET+"::"+config.aws_bucket);
         Regions clientRegion = Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
         try {
             AmazonS3 s3Client = null;
             if(config.aws_mock){
                 System.out.println("mocking s3 with minio");
-                System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_MOCK::"+config.aws_mock);
-                System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_ENDPOINT::"+config.aws_endpoint);
-                System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_DISABLE_SSL::"+config.aws_disable_ssl);
-                System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_FORCE_PATH_STYLE::"+config.aws_force_path_style);
+                //System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_MOCK::"+config.aws_mock);
+                //System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_ENDPOINT::"+config.aws_endpoint);
+                //System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_DISABLE_SSL::"+config.aws_disable_ssl);
+                //System.out.println(EnvironmentVariables.CC_PROFILE + "_S3_FORCE_PATH_STYLE::"+config.aws_force_path_style);
                 AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
                 ClientConfiguration clientConfiguration = new ClientConfiguration();
                 clientConfiguration.setSignerOverride("AWSS3V4SignerType");
