@@ -1,6 +1,4 @@
-package usace.wat.plugin;
-
-import java.rmi.RemoteException;
+package usace.cc.plugin;
 
 public interface CcStore {
     public boolean PutObject(PutObjectInput input);

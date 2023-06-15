@@ -1,4 +1,4 @@
-package usace.wat.plugin;
+package usace.cc.plugin;
 
 public class PutObjectInput {
     private String fileName;

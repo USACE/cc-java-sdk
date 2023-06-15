@@ -1,12 +1,13 @@
-package usace.wat.plugin;
+package usace.cc.plugin;
  
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
-import usace.wat.plugin.Error.ErrorLevel;
-
+import java.util.Map;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+
+import usace.cc.plugin.Error.ErrorLevel;
 
 public final class PluginManager {
     private CcStore cs;
@@ -52,6 +53,11 @@ public final class PluginManager {
         for (int i= 0; i<_payload.getOutputs().length; i++){
             for(int j=0; j<_payload.getOutputs()[i].getPaths().length;j++){
                 _payload.getOutputs()[i].getPaths()[j] = substituteDataSourcePath(_payload.getOutputs()[i].getPaths()[j]);
+            }
+        }
+        for (int i= 0; i<_payload.getActions().length; i++){
+            for(Map.Entry<String,String> entry: _payload.getActions()[i].getParameters().entrySet()){
+                _payload.getActions()[i].getParameters().replace(entry.getKey(), substituteDataSourcePath(entry.getValue()));
             }
         }
     }

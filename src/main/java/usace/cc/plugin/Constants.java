@@ -1,4 +1,4 @@
-package usace.wat.plugin;
+package usace.cc.plugin;
 
 public final class Constants {
     public static String PayloadFileName = "payload";

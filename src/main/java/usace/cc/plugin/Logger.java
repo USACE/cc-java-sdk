@@ -1,8 +1,8 @@
-package usace.wat.plugin;
+package usace.cc.plugin;
 
 import java.time.LocalDate;
 
-import usace.wat.plugin.Error.ErrorLevel;
+import usace.cc.plugin.Error.ErrorLevel;
 
 public class Logger {
     //this is an aggregator, it is anticipated that this will get replaced but the api will remain.

@@ -1,12 +1,10 @@
-package usace.wat.plugin;
+package usace.cc.plugin;
 
-
-public class PullObjectInput {
+public class GetObjectInput {
     private String fileName;
     private String fileExtension;
     private StoreType sourceStoreType;
     private String sourceRootPath;
-    private String destRootPath;
     public String getFileName(){
         return fileName;
     }
@@ -19,18 +17,13 @@ public class PullObjectInput {
     public String getSourceRootPath(){
         return sourceRootPath;
     }
-    public String getDestRootPath(){
-        return destRootPath;
-    }
     /**
      * 
      */
-    public PullObjectInput(String fileName, StoreType sourceStoreType, String sourceRootPath, String destRootPath, String fileExtension){
+    public GetObjectInput(String fileName, StoreType sourceStoreType, String sourceRootPath, String fileExtension){
         this.fileName = fileName;
         this.sourceStoreType = sourceStoreType;
         this.sourceRootPath = sourceRootPath;
-        this.destRootPath = destRootPath;
         this.fileExtension = fileExtension;
     }
 }
-

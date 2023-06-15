@@ -1,4 +1,4 @@
-package usace.wat.plugin;
+package usace.cc.plugin;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.Map;
 
@@ -11,6 +11,8 @@ public class Payload {
     private DataSource[] inputs;
     @JsonProperty
     private DataSource[] outputs;
+    @JsonProperty
+    private Action[] actions;
     public Map<String,Object> getAttributes(){
         return attributes;
     }
@@ -25,6 +27,9 @@ public class Payload {
     }
     public DataSource[] getOutputs(){
         return outputs;
+    }
+    public Action[] getActions(){
+        return actions;
     }
 }
 

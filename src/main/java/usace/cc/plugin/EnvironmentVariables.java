@@ -1,4 +1,4 @@
-package usace.wat.plugin;
+package usace.cc.plugin;
 
 public final class EnvironmentVariables {
     public static String CC_MANIFEST_ID = "CC_MANIFEST_ID";
