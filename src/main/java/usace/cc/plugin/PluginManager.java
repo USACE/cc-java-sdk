@@ -56,9 +56,7 @@ public final class PluginManager {
             }
         }
         for (int i= 0; i<_payload.getActions().length; i++){
-            for(Map.Entry<String,ActionParameter> entry: _payload.getActions()[i].getParameters().entrySet()){
-                _payload.getActions()[i].getParameters().replace(entry.getKey(), entry.getValue().UpdatePaths());
-            }
+            _payload.getActions()[i].UpdateActionPaths();
         }
     }
     public String SubstitutePath(String path) {
