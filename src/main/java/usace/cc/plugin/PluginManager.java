@@ -47,21 +47,21 @@ public final class PluginManager {
     private void substitutePathVariables() {
         for (int i= 0; i<_payload.getInputs().length; i++){
             for(int j=0; j<_payload.getInputs()[i].getPaths().length;j++){
-                _payload.getInputs()[i].getPaths()[j] = substituteDataSourcePath(_payload.getInputs()[i].getPaths()[j]);
+                _payload.getInputs()[i].getPaths()[j] = SubstitutePath(_payload.getInputs()[i].getPaths()[j]);
             }
         }
         for (int i= 0; i<_payload.getOutputs().length; i++){
             for(int j=0; j<_payload.getOutputs()[i].getPaths().length;j++){
-                _payload.getOutputs()[i].getPaths()[j] = substituteDataSourcePath(_payload.getOutputs()[i].getPaths()[j]);
+                _payload.getOutputs()[i].getPaths()[j] = SubstitutePath(_payload.getOutputs()[i].getPaths()[j]);
             }
         }
         for (int i= 0; i<_payload.getActions().length; i++){
-            for(Map.Entry<String,String> entry: _payload.getActions()[i].getParameters().entrySet()){
-                _payload.getActions()[i].getParameters().replace(entry.getKey(), substituteDataSourcePath(entry.getValue()));
+            for(Map.Entry<String,ActionParameter> entry: _payload.getActions()[i].getParameters().entrySet()){
+                _payload.getActions()[i].getParameters().replace(entry.getKey(), entry.getValue().UpdatePaths());
             }
         }
     }
-    private String substituteDataSourcePath(String path) {
+    public String SubstitutePath(String path) {
         Matcher m = p.matcher(path);
         while(m.find()){
             String result = m.group();

@@ -9,6 +9,8 @@ public class DataSource {
     private String StoreName;
     @JsonProperty
     private String[] Paths;
+    @JsonProperty
+    private String[] DataPaths;
     public String getId(){
         return ID;
     }
@@ -16,6 +18,9 @@ public class DataSource {
         return Name;
     }
     public String[] getPaths(){
+        return Paths;
+    }
+    public String[] getDataPaths(){
         return Paths;
     }
     public String getStoreName(){

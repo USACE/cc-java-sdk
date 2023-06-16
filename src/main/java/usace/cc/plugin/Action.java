@@ -10,8 +10,8 @@ public class Action {
     @JsonProperty
     private String description;
     @JsonProperty
-    private Map<String,String> parameters;
-    public Map<String,String> getParameters(){
+    private Map<String,ActionParameter> parameters;
+    public Map<String,ActionParameter> getParameters(){
         return parameters;
     }
 }
