@@ -13,8 +13,8 @@ public final class PluginManager {
     private CcStore cs;
     private Payload _payload;
     private Logger _logger;
-    private PluginManager _instance = new PluginManager();
-    public PluginManager getInstance(){
+    private static PluginManager _instance = new PluginManager();
+    public static PluginManager getInstance(){
         return _instance;
     }
     Pattern p;
