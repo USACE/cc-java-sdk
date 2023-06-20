@@ -13,8 +13,12 @@ public final class PluginManager {
     private CcStore cs;
     private Payload _payload;
     private Logger _logger;
+    private PluginManager _instance = new PluginManager();
+    public PluginManager getInstance(){
+        return _instance;
+    }
     Pattern p;
-    public PluginManager(){
+    private PluginManager(){
         p = Pattern.compile("(?<=\\{).+?(?=\\})");
         String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
         _logger = new Logger(sender, ErrorLevel.WARN);
