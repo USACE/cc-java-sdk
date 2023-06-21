@@ -29,8 +29,11 @@ public class DataSource {
     public DataSource UpdatePaths(){
         DataSource dest = this;
         PluginManager pm = PluginManager.getInstance();
+        
         for(int j=0; j<this.getPaths().length;j++){
-                dest.getPaths()[j] = pm.SubstitutePath(this.getPaths()[j]);
+            pm.LogMessage(new Message("incoming: " + this.getPaths()[j]));
+            dest.getPaths()[j] = pm.SubstitutePath(this.getPaths()[j]);
+            pm.LogMessage(new Message("outgoing: " + dest.getPaths()[j]));
         }
         for(int j=0; j<this.getDataPaths().length;j++){
             dest.getDataPaths()[j] = pm.SubstitutePath(this.getDataPaths()[j]);

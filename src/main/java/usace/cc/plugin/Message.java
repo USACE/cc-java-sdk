@@ -7,6 +7,8 @@ public class Message {
     public String getMessage(){
         return message;
     }
-
+    public Message(String message){
+        this.message = message;
+    }
 }
 
