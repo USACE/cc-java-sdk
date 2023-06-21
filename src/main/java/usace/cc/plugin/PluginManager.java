@@ -14,6 +14,7 @@ public final class PluginManager {
     private Payload _payload;
     private Logger _logger;
     private static PluginManager _instance = null;
+    private boolean _hasUpdatedPaths = false;
     public static PluginManager getInstance(){
         if (_instance==null){
             _instance = new PluginManager();
@@ -45,7 +46,7 @@ public final class PluginManager {
                 }
                 i ++;
             }
-            substitutePathVariables();
+            //substitutePathVariables();
         } catch (Exception e) {
             e.printStackTrace();
         }
@@ -86,6 +87,10 @@ public final class PluginManager {
         return path;
     }
     public Payload getPayload(){
+        if (!_hasUpdatedPaths){
+            substitutePathVariables();
+            _hasUpdatedPaths = true;
+        }
         return _payload;
     }
     public FileDataStore getFileStore(String storeName){
