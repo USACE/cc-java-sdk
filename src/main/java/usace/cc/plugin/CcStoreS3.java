@@ -148,9 +148,7 @@ public class CcStoreS3 implements CcStore {
         return false;
     }
     private void writeInputStreamToDisk(InputStream input, String outputDestination) throws IOException {
-        String[] fileparts = outputDestination.split("/");
-        String fileName = fileparts[fileparts.length-1];
-        String directory = outputDestination.replace(fileName,"");
+        String directory = new File(outputDestination).getParent();
         File f = new File(directory);
         if(!f.exists()){
             f.mkdirs();
