@@ -50,14 +50,10 @@ public final class PluginManager {
     }
     private void substitutePathVariables() {
         for (int i= 0; i<_payload.getInputs().length; i++){
-            for(int j=0; j<_payload.getInputs()[i].getPaths().length;j++){
-                _payload.getInputs()[i].getPaths()[j] = SubstitutePath(_payload.getInputs()[i].getPaths()[j]);
-            }
+            _payload.getInputs()[i] = _payload.getInputs()[i].UpdatePaths();
         }
         for (int i= 0; i<_payload.getOutputs().length; i++){
-            for(int j=0; j<_payload.getOutputs()[i].getPaths().length;j++){
-                _payload.getOutputs()[i].getPaths()[j] = SubstitutePath(_payload.getOutputs()[i].getPaths()[j]);
-            }
+            _payload.getOutputs()[i] = _payload.getOutputs()[i].UpdatePaths();
         }
         for (int i= 0; i<_payload.getActions().length; i++){
             _payload.getActions()[i].UpdateActionPaths();

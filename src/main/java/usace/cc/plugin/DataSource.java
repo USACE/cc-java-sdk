@@ -21,9 +21,20 @@ public class DataSource {
         return Paths;
     }
     public String[] getDataPaths(){
-        return Paths;
+        return DataPaths;
     }
     public String getStoreName(){
         return StoreName;
+    }
+    public DataSource UpdatePaths(){
+        DataSource dest = this;
+        PluginManager pm = PluginManager.getInstance();
+        for(int j=0; j<this.getPaths().length;j++){
+                dest.getPaths()[j] = pm.SubstitutePath(this.getPaths()[j]);
+        }
+        for(int j=0; j<this.getDataPaths().length;j++){
+            dest.getDataPaths()[j] = pm.SubstitutePath(this.getDataPaths()[j]);
+        }
+        return dest;
     }
 }
