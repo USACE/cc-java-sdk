@@ -53,15 +53,22 @@ public final class PluginManager {
         
     }
     private void substitutePathVariables() {
-        for (int i= 0; i<_payload.getInputs().length; i++){
-            _payload.getInputs()[i] = _payload.getInputs()[i].UpdatePaths();
+        if (_payload.getInputs()!=null){
+            for (int i= 0; i<_payload.getInputs().length; i++){
+                _payload.getInputs()[i] = _payload.getInputs()[i].UpdatePaths();
+            }            
         }
-        for (int i= 0; i<_payload.getOutputs().length; i++){
-            _payload.getOutputs()[i] = _payload.getOutputs()[i].UpdatePaths();
+        if (_payload.getOutputs()!=null){
+            for (int i= 0; i<_payload.getOutputs().length; i++){
+                _payload.getOutputs()[i] = _payload.getOutputs()[i].UpdatePaths();
+            }            
         }
-        for (int i= 0; i<_payload.getActions().length; i++){
-            _payload.getActions()[i].UpdateActionPaths();
+        if(_payload.getActions()!=null){
+            for (int i= 0; i<_payload.getActions().length; i++){
+                _payload.getActions()[i].UpdateActionPaths();
+            }            
         }
+
     }
     public String SubstitutePath(String path) {
         Matcher m = p.matcher(path);

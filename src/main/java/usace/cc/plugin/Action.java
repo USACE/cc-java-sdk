@@ -21,8 +21,11 @@ public class Action {
         return parameters;
     }
     public void UpdateActionPaths(){
-        for(Map.Entry<String, DataSource> apb : parameters.entrySet()){
-            parameters.replace(apb.getKey(),apb.getValue().UpdatePaths());
+        if(parameters!=null){
+            for(Map.Entry<String, DataSource> apb : parameters.entrySet()){
+                parameters.replace(apb.getKey(),apb.getValue().UpdatePaths());
+            }            
         }
+
     }
 }
