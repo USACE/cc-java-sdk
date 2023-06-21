@@ -29,6 +29,7 @@ public class DataSource {
     public DataSource UpdatePaths(){
         DataSource dest = this;
         PluginManager pm = PluginManager.getInstance();
+        dest.Name = pm.SubstitutePath(this.getName());
         if(this.getPaths()!=null){
             for(int j=0; j<this.getPaths().length;j++){
                 pm.LogMessage(new Message("incoming: " + this.getPaths()[j]));

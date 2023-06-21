@@ -21,6 +21,9 @@ public class Action {
         return parameters;
     }
     public void UpdateActionPaths(){
+        PluginManager pm = PluginManager.getInstance();
+        this.name = pm.SubstitutePath(this.name);
+        this.description = pm.SubstitutePath(this.description);
         if(parameters!=null){
             for(Map.Entry<String, DataSource> apb : parameters.entrySet()){
                 parameters.replace(apb.getKey(),apb.getValue().UpdatePaths());
