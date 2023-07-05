@@ -1,5 +1,6 @@
 package usace.cc.plugin;
 
+import com.amazonaws.util.IOUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -60,7 +61,7 @@ public class FileDataStoreS3 implements FileDataStore {
     public Boolean Put(InputStream data, String path) {
         byte[] bytes;
         try {
-            bytes = data.readAllBytes();
+            bytes = IOUtils.toByteArray(data);
             return UploadToS3(config.aws_bucket, postFix + "/" + path, bytes);
         } catch (IOException e) {
             e.printStackTrace();
@@ -162,7 +163,7 @@ public class FileDataStoreS3 implements FileDataStore {
         try {
             fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
-            return fullObject.getObjectContent().readAllBytes();
+            return IOUtils.toByteArray(fullObject.getObjectContent());
         }  catch (Exception e) {
             throw e;
         } finally {

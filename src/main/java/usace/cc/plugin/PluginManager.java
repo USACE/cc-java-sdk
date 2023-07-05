@@ -1,5 +1,6 @@
 package usace.cc.plugin;
  
+import com.amazonaws.util.IOUtils;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -123,7 +124,7 @@ public final class PluginManager {
         InputStream reader = store.Get(ds.getPaths()[path]);
         byte[] data;
         try {
-            data = reader.readAllBytes();
+            data = IOUtils.toByteArray(reader);
             return data;
         } catch (IOException e) {
             e.printStackTrace();

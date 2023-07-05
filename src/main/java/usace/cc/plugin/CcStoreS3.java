@@ -1,5 +1,6 @@
 package usace.cc.plugin;
 
+import com.amazonaws.util.IOUtils;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -153,7 +154,7 @@ public class CcStoreS3 implements CcStore {
         if(!f.exists()){
             f.mkdirs();
         }
-        byte[] bytes = input.readAllBytes();
+        byte[] bytes = IOUtils.toByteArray(input);
         OutputStream os = new FileOutputStream(new File(outputDestination));
         os.write(bytes);
     }
@@ -189,7 +190,7 @@ public class CcStoreS3 implements CcStore {
         try {
             fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
             System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
-            return fullObject.getObjectContent().readAllBytes();
+            return IOUtils.toByteArray(fullObject.getObjectContent());
         }  catch (Exception e) {
             throw e;
         } finally {
