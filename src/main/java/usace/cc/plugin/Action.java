@@ -5,18 +5,20 @@ import java.util.Map;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Action {
-    private String name;
-    private String desc;
-    private Map<String,DataSource> params;
     @JsonProperty
+    private String name;
+    @JsonProperty
+    private String desc;
+    @JsonProperty
+    private Map<String,DataSource> params;
     public String getName(){
         return name;
     }
-    @JsonProperty
+    
     public String getDescription(){
         return desc;
     }
-    @JsonProperty
+    
     public Map<String,DataSource> getParameters(){
         return params;
     }
