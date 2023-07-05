@@ -178,6 +178,7 @@ public final class PluginManager {
                 return dataStore;
             }
         }
+        System.out.println(name + " store not found.");
         return null;
     }
 }

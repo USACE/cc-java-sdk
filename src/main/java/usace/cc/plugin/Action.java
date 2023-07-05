@@ -6,27 +6,27 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 public class Action {
     private String name;
-    private String description;
-    private Map<String,DataSource> parameters;
+    private String desc;
+    private Map<String,DataSource> params;
     @JsonProperty
     public String getName(){
         return name;
     }
     @JsonProperty
     public String getDescription(){
-        return description;
+        return desc;
     }
     @JsonProperty
     public Map<String,DataSource> getParameters(){
-        return parameters;
+        return params;
     }
     public void UpdateActionPaths(){
         PluginManager pm = PluginManager.getInstance();
         this.name = pm.SubstitutePath(this.name);
-        this.description = pm.SubstitutePath(this.description);
-        if(parameters!=null){
-            for(Map.Entry<String, DataSource> apb : parameters.entrySet()){
-                parameters.replace(apb.getKey(),apb.getValue().UpdatePaths());
+        this.desc = pm.SubstitutePath(this.desc);
+        if(params!=null){
+            for(Map.Entry<String, DataSource> apb : params.entrySet()){
+                params.replace(apb.getKey(),apb.getValue().UpdatePaths());
             }            
         }
 
