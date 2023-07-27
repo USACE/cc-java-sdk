@@ -66,7 +66,7 @@ public class FileDataStoreS3 implements FileDataStore {
             e.printStackTrace();
             return false;
         }
-        
+
     }
 
     @Override
@@ -100,7 +100,7 @@ public class FileDataStoreS3 implements FileDataStore {
         //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID+"::"+config.aws_access_key_id);
         //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY+"::"+config.aws_secret_access_key_id);
         //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_S3_BUCKET+"::"+config.aws_bucket);
-        
+
         Regions clientRegion = Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
         try {
             AmazonS3 s3Client = null;
@@ -123,11 +123,11 @@ public class FileDataStoreS3 implements FileDataStore {
                     .standard()
                     .withRegion(clientRegion)
                     .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                    .build();                
+                    .build();
             }
             awsS3 = s3Client;
         } catch (AmazonServiceException e) {
-            // The call was transmitted successfully, but Amazon S3 couldn't process 
+            // The call was transmitted successfully, but Amazon S3 couldn't process
             // it, so it returned an error response.
             e.printStackTrace();
         } catch (SdkClientException e) {
@@ -157,13 +157,13 @@ public class FileDataStoreS3 implements FileDataStore {
     private byte[] DownloadBytesFromS3(String key) throws Exception{
         S3Object fullObject = null;
         key = postFix + "/" + key;
-        System.out.println(key);
-        System.out.println(bucket);
         try {
             fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
-            System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
+            System.out.println("   `" + key + "` downloaded from bucket `" + bucket + "`");
+            //System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
             return fullObject.getObjectContent().readAllBytes();
         }  catch (Exception e) {
+            System.out.println("error: key `" + key + "` not found in bucket `" + bucket + "`");
             throw e;
         } finally {
             // To ensure that the network connection doesn't remain open, close any open input streams.

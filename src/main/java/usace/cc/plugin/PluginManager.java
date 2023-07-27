@@ -1,5 +1,5 @@
 package usace.cc.plugin;
- 
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -50,23 +50,23 @@ public final class PluginManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
+
     }
     private void substitutePathVariables() {
         if (_payload.getInputs()!=null){
             for (int i= 0; i<_payload.getInputs().length; i++){
                 _payload.getInputs()[i] = _payload.getInputs()[i].UpdatePaths();
-            }            
+            }
         }
         if (_payload.getOutputs()!=null){
             for (int i= 0; i<_payload.getOutputs().length; i++){
                 _payload.getOutputs()[i] = _payload.getOutputs()[i].UpdatePaths();
-            }            
+            }
         }
         if(_payload.getActions()!=null){
             for (int i= 0; i<_payload.getActions().length; i++){
                 _payload.getActions()[i].UpdateActionPaths();
-            }            
+            }
         }
 
     }
@@ -126,7 +126,7 @@ public final class PluginManager {
             data = reader.readAllBytes();
             return data;
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
     }
