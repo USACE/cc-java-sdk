@@ -3,4 +3,7 @@ ENV TZ=America/New_York
 RUN apt update
 RUN apt -y install wget
 RUN apt -y install git
-#FROM ubuntu:20.04 as prod
+RUN wget https://services.gradle.org/distributions/gradle-7.3.1-bin.zip
+RUN mkdir /opt/gradle
+RUN unzip -d /opt/gradle gradle-7.3.1-bin.zip
+ENV PATH=$PATH:/opt/gradle/gradle-7.3.1/bin
