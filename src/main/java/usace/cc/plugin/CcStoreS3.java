@@ -7,6 +7,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+// Add for local dev
+import java.nio.file.Files;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
@@ -81,12 +83,13 @@ public class CcStoreS3 implements CcStore {
                     .standard()
                     .withRegion(clientRegion)
                     .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                    .build();                
+                    .build();
             }
             awsS3 = s3Client;
         } catch (AmazonServiceException e) {
-            // The call was transmitted successfully, but Amazon S3 couldn't process 
+            // The call was transmitted successfully, but Amazon S3 couldn't process
             // it, so it returned an error response.
+            System.out.println("Amazon S3 could not process building client");
             e.printStackTrace();
         } catch (SdkClientException e) {
             // Amazon S3 couldn't be contacted for a response, or the client
@@ -127,7 +130,7 @@ public class CcStoreS3 implements CcStore {
             default:
                 return false;
         }
-        
+
         return true;
     }
     @Override
@@ -168,21 +171,33 @@ public class CcStoreS3 implements CcStore {
         }
         return data;
     }
+    // TODO: Remove after testing
     @Override
-    public Payload GetPayload() throws AmazonS3Exception {
-        String filepath = root + "/" + manifestId + "/" + Constants.PayloadFileName;
-        try{
-            byte[] body = DownloadBytesFromS3(filepath);
+    public Payload GetPayload() throws Exception{ //throws AmazonS3Exception {
+        // String filepath = root + "/" + manifestId + "/" + Constants.PayloadFileName;
+        // try{
+        //     byte[] body = DownloadBytesFromS3(filepath);
+        //     return ReadJsonModelPayloadFromBytes(body);
+        // } catch (Exception e){
+        //     throw new AmazonS3Exception(e.toString());
+        // }
+
+        //Change to read local payload
+        File file = new File("build/resources/main/payload-original");
+        System.out.println(file.toPath());
+        try {
+            byte[] body = Files.readAllBytes(file.toPath());
             return ReadJsonModelPayloadFromBytes(body);
-        } catch (Exception e){
-            throw new AmazonS3Exception(e.toString());
+        } catch (Exception e) {
+            System.out.println("Failure!!");
+            throw e;
         }
     }
     private byte[] DownloadBytesFromS3(String key) throws Exception{
         S3Object fullObject = null;
         boolean spaces = key.contains(" ");
         if(spaces){
-            key = "\""+ key + "\""; 
+            key = "\""+ key + "\"";
         }
         System.out.println(key);
         System.out.println(bucket);
