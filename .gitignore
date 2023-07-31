@@ -24,3 +24,8 @@ hs_err_pid*
 run/*
 configs/models/*
 .gradle/*
+src/main/java/usace/cc/plugin/Test.java
+src/main/resources
+src/main/resources/*
+build/*
+.env
