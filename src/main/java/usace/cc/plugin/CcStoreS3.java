@@ -7,8 +7,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-// Add for local dev
-import java.nio.file.Files;
 import com.amazonaws.AmazonServiceException;
 import com.amazonaws.ClientConfiguration;
 import com.amazonaws.Protocol;
@@ -174,23 +172,12 @@ public class CcStoreS3 implements CcStore {
     // TODO: Remove after testing
     @Override
     public Payload GetPayload() throws Exception{ //throws AmazonS3Exception {
-        // String filepath = root + "/" + manifestId + "/" + Constants.PayloadFileName;
-        // try{
-        //     byte[] body = DownloadBytesFromS3(filepath);
-        //     return ReadJsonModelPayloadFromBytes(body);
-        // } catch (Exception e){
-        //     throw new AmazonS3Exception(e.toString());
-        // }
-
-        //Change to read local payload
-        File file = new File("build/resources/main/payload-original");
-        System.out.println(file.toPath());
-        try {
-            byte[] body = Files.readAllBytes(file.toPath());
+        String filepath = root + "/" + manifestId + "/" + Constants.PayloadFileName;
+        try{
+            byte[] body = DownloadBytesFromS3(filepath);
             return ReadJsonModelPayloadFromBytes(body);
-        } catch (Exception e) {
-            System.out.println("Failure!!");
-            throw e;
+        } catch (Exception e){
+            throw new AmazonS3Exception(e.toString());
         }
     }
     private byte[] DownloadBytesFromS3(String key) throws Exception{
