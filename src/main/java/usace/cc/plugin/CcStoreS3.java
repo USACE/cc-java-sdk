@@ -100,6 +100,14 @@ public class CcStoreS3 implements CcStore {
         bucket =  config.aws_bucket;// + Constants.RemoteRootPath;
         root = System.getenv(EnvironmentVariables.CC_ROOT);
     }
+
+    public void setManifestId(String manifestId) {
+        this.manifestId = manifestId;
+    }
+    public void setRoot(String root) {
+        this.root = root;
+    }
+
     @Override
     public boolean HandlesDataStoreType(StoreType storeType){
         return this.storeType == storeType;

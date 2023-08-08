@@ -21,12 +21,33 @@ public final class PluginManager {
         }
         return _instance;
     }
+    public static PluginManager getInstance(String ccRoot, String ccManifestId){
+        if (_instance==null){
+            _instance = new PluginManager(ccRoot, ccManifestId);
+        }
+        return _instance;
+    }
     Pattern p;
     private PluginManager(){
         p = Pattern.compile("(?<=\\{).+?(?=\\})");
         String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
         _logger = new Logger(sender, ErrorLevel.WARN);
         cs = new CcStoreS3();
+        parsePayload(cs);
+    }
+    private PluginManager(String ccRoot, String ccManifestId){
+        p = Pattern.compile("(?<=\\{).+?(?=\\})");
+        String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
+        _logger = new Logger(sender, ErrorLevel.WARN);
+        cs = new CcStoreS3();
+        ((CcStoreS3) cs).setRoot(ccRoot);
+        ((CcStoreS3) cs).setManifestId(ccManifestId);
+        parsePayload(cs);
+    }
+    /**
+     * Private method to go through the CCStore payload and configure the DataStores
+     */
+    private void parsePayload (CcStore cs) {
         try {
             _payload = cs.GetPayload();
             int i = 0;
@@ -50,7 +71,6 @@ public final class PluginManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-
     }
     private void substitutePathVariables() {
         if (_payload.getInputs()!=null){
