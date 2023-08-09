@@ -101,10 +101,10 @@ public class CcStoreS3 implements CcStore {
         root = System.getenv(EnvironmentVariables.CC_ROOT);
     }
 
-    public void setManifestId(String manifestId) {
+    void setManifestId(String manifestId) {
         this.manifestId = manifestId;
     }
-    public void setRoot(String root) {
+    void setRoot(String root) {
         this.root = root;
     }
 

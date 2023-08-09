@@ -12,19 +12,15 @@ The Java sdk for developing plugins for cloud compute. This library provides too
 
 ### Building the System
 
-This library can be built and containerized with Docker:
-
-```
-docker build . -t <image_name>
-```
-
-Or it can be built directly with gradle, using the following command:
+This library is built with gradle, using the following command:
 
 ```
 gradle build
 ```
 
 This will create a `cc-java-sdk-0.0.50.jar` file inside the `build/libs` directory.
+
+Optionally, this library can be opened for development inside a Docker dev container. The `devcontainer.json` specifies configuration for the development container. Currently, the dev container is set to build from the existing [`Dockerfile`](Dockerfile)
 
 ### Running the System
 
