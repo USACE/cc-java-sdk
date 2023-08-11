@@ -1,5 +1,5 @@
 package usace.cc.plugin;
- 
+
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
@@ -21,12 +21,33 @@ public final class PluginManager {
         }
         return _instance;
     }
+    public static PluginManager getInstance(String ccRoot, String ccManifestId){
+        if (_instance==null){
+            _instance = new PluginManager(ccRoot, ccManifestId);
+        }
+        return _instance;
+    }
     Pattern p;
     private PluginManager(){
         p = Pattern.compile("(?<=\\{).+?(?=\\})");
         String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
         _logger = new Logger(sender, ErrorLevel.WARN);
         cs = new CcStoreS3();
+        parsePayload(cs);
+    }
+    private PluginManager(String ccRoot, String ccManifestId){
+        p = Pattern.compile("(?<=\\{).+?(?=\\})");
+        String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
+        _logger = new Logger(sender, ErrorLevel.WARN);
+        cs = new CcStoreS3();
+        ((CcStoreS3) cs).setRoot(ccRoot);
+        ((CcStoreS3) cs).setManifestId(ccManifestId);
+        parsePayload(cs);
+    }
+    /**
+     * Private method to go through the CCStore payload and configure the DataStores
+     */
+    private void parsePayload (CcStore cs) {
         try {
             _payload = cs.GetPayload();
             int i = 0;
@@ -50,23 +71,22 @@ public final class PluginManager {
         } catch (Exception e) {
             e.printStackTrace();
         }
-        
     }
     private void substitutePathVariables() {
         if (_payload.getInputs()!=null){
             for (int i= 0; i<_payload.getInputs().length; i++){
                 _payload.getInputs()[i] = _payload.getInputs()[i].UpdatePaths();
-            }            
+            }
         }
         if (_payload.getOutputs()!=null){
             for (int i= 0; i<_payload.getOutputs().length; i++){
                 _payload.getOutputs()[i] = _payload.getOutputs()[i].UpdatePaths();
-            }            
+            }
         }
         if(_payload.getActions()!=null){
             for (int i= 0; i<_payload.getActions().length; i++){
                 _payload.getActions()[i].UpdateActionPaths();
-            }            
+            }
         }
 
     }
@@ -126,7 +146,7 @@ public final class PluginManager {
             data = reader.readAllBytes();
             return data;
         } catch (IOException e) {
-            e.printStackTrace();
+            //e.printStackTrace();
             return null;
         }
     }

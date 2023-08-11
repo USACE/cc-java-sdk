@@ -42,12 +42,26 @@ public class CcStoreS3 implements CcStore {
     public CcStoreS3(){
         AWSConfig acfg = new AWSConfig();
         acfg.aws_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID);
+        if(acfg.aws_access_key_id == null)
+            System.out.println("ERROR: `" + EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID + "` environment variable is not set.");
         acfg.aws_secret_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
+        if(acfg.aws_secret_access_key_id == null)
+            System.out.println("ERROR: `" + EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY + "` environment variable is not set.");
         acfg.aws_region = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION);
+        if(acfg.aws_region == null)
+            System.out.println("ERROR: `" + EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION + "` environment variable is not set.");
         acfg.aws_bucket = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_S3_BUCKET);
+        if(acfg.aws_bucket == null)
+            System.out.println("ERROR: `" + EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_S3_BUCKET + "` environment variable is not set.");
+        if(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_MOCK") == null)
+            System.out.println("WARNING: `" + EnvironmentVariables.CC_PROFILE + "_" + "S3_MOCK" + "` environment variable is not set. Defaulted to false");
         acfg.aws_mock = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_MOCK"));//convert to boolean;//stringformat
         acfg.aws_endpoint = System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_ENDPOINT");
+        if(acfg.aws_mock == true && acfg.aws_endpoint == null)
+            System.out.println("ERROR: `" + EnvironmentVariables.CC_PROFILE + "_" + "S3_ENDPOINT" + "` environment variable is not set even though using mock S3.");
         acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_DISABLE_SSL"));//convert to bool?
+        if(acfg.aws_mock == true && System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_FORCE_PATH_STYLE") == null)
+            System.out.println("WARNING: `" + EnvironmentVariables.CC_PROFILE + "_" + "S3_FORCE_PATH_STYLE" + "` environment variable is not set even though using mock S3--defaulted to false.");
         acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv(EnvironmentVariables.CC_PROFILE + "_" +"S3_FORCE_PATH_STYLE"));//convert to bool
         config = acfg;
         //System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION+"::"+config.aws_region);
@@ -81,12 +95,13 @@ public class CcStoreS3 implements CcStore {
                     .standard()
                     .withRegion(clientRegion)
                     .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                    .build();                
+                    .build();
             }
             awsS3 = s3Client;
         } catch (AmazonServiceException e) {
-            // The call was transmitted successfully, but Amazon S3 couldn't process 
+            // The call was transmitted successfully, but Amazon S3 couldn't process
             // it, so it returned an error response.
+            System.out.println("Amazon S3 could not process building client");
             e.printStackTrace();
         } catch (SdkClientException e) {
             // Amazon S3 couldn't be contacted for a response, or the client
@@ -99,6 +114,14 @@ public class CcStoreS3 implements CcStore {
         bucket =  config.aws_bucket;// + Constants.RemoteRootPath;
         root = System.getenv(EnvironmentVariables.CC_ROOT);
     }
+
+    void setManifestId(String manifestId) {
+        this.manifestId = manifestId;
+    }
+    void setRoot(String root) {
+        this.root = root;
+    }
+
     @Override
     public boolean HandlesDataStoreType(StoreType storeType){
         return this.storeType == storeType;
@@ -127,7 +150,7 @@ public class CcStoreS3 implements CcStore {
             default:
                 return false;
         }
-        
+
         return true;
     }
     @Override
@@ -168,8 +191,9 @@ public class CcStoreS3 implements CcStore {
         }
         return data;
     }
+    // TODO: Remove after testing
     @Override
-    public Payload GetPayload() throws AmazonS3Exception {
+    public Payload GetPayload() throws Exception{ //throws AmazonS3Exception {
         String filepath = root + "/" + manifestId + "/" + Constants.PayloadFileName;
         try{
             byte[] body = DownloadBytesFromS3(filepath);
@@ -182,7 +206,7 @@ public class CcStoreS3 implements CcStore {
         S3Object fullObject = null;
         boolean spaces = key.contains(" ");
         if(spaces){
-            key = "\""+ key + "\""; 
+            key = "\""+ key + "\"";
         }
         System.out.println(key);
         System.out.println(bucket);

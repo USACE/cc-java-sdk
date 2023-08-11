@@ -66,7 +66,7 @@ public class FileDataStoreS3 implements FileDataStore {
             e.printStackTrace();
             return false;
         }
-        
+
     }
 
     @Override
@@ -88,19 +88,33 @@ public class FileDataStoreS3 implements FileDataStore {
     public FileDataStoreS3(DataStore ds){
         AWSConfig acfg = new AWSConfig();
         acfg.aws_access_key_id = System.getenv(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID);
+        if(acfg.aws_access_key_id == null)
+            System.out.println("ERROR: `" + ds.getDsProfile() + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID + "` environment variable is not set.");
         acfg.aws_secret_access_key_id = System.getenv(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
+        if(acfg.aws_secret_access_key_id == null)
+            System.out.println("ERROR: `" + ds.getDsProfile() + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY + "` environment variable is not set.");
         acfg.aws_region = System.getenv(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_DEFAULT_REGION);
+        if(acfg.aws_region == null)
+            System.out.println("ERROR: `" + ds.getDsProfile() + "_" + EnvironmentVariables.AWS_DEFAULT_REGION + "` environment variable is not set.");
         acfg.aws_bucket = System.getenv(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_S3_BUCKET);
+        if(acfg.aws_bucket == null)
+            System.out.println("ERROR: `" + ds.getDsProfile() + "_" + EnvironmentVariables.AWS_S3_BUCKET + "` environment variable is not set.");
+        if(System.getenv(ds.getDsProfile() + "_" +"S3_MOCK") == null)
+            System.out.println("WARNING: `" + ds.getDsProfile() + "_" + "S3_MOCK" + "` environment variable is not set. Defaulted to false");
         acfg.aws_mock = Boolean.parseBoolean(System.getenv(ds.getDsProfile() + "_"+ "S3_MOCK"));//convert to boolean;
         acfg.aws_endpoint = System.getenv(ds.getDsProfile() + "_"+ "S3_ENDPOINT");
-        acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv(ds.getDsProfile() + "_"+ "S3_DISABLE_SSL"));//convert to bool?
+        if(acfg.aws_mock == true && acfg.aws_endpoint == null)
+            System.out.println("ERROR: `" + ds.getDsProfile() + "_" + "S3_ENDPOINT" + "` environment variable is not set even though using mock S3.");
+        acfg.aws_disable_ssl = Boolean.parseBoolean(System.getenv(ds.getDsProfile() + "_"+ "S3_DISABLE_SSL"));//convert to bool? //Never used
+        if(acfg.aws_mock == true && System.getenv(ds.getDsProfile() + "_" +"S3_FORCE_PATH_STYLE") == null)
+            System.out.println("WARNING: `" + ds.getDsProfile() + "_" + "S3_FORCE_PATH_STYLE" + "` environment variable is not set even though using mock S3--defaulted to false.");
         acfg.aws_force_path_style = Boolean.parseBoolean(System.getenv(ds.getDsProfile() + "_"+ "S3_FORCE_PATH_STYLE"));//convert to bool
         config = acfg;
         //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_DEFAULT_REGION+"::"+config.aws_region);
         //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID+"::"+config.aws_access_key_id);
         //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY+"::"+config.aws_secret_access_key_id);
         //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_S3_BUCKET+"::"+config.aws_bucket);
-        
+
         Regions clientRegion = Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
         try {
             AmazonS3 s3Client = null;
@@ -123,11 +137,11 @@ public class FileDataStoreS3 implements FileDataStore {
                     .standard()
                     .withRegion(clientRegion)
                     .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                    .build();                
+                    .build();
             }
             awsS3 = s3Client;
         } catch (AmazonServiceException e) {
-            // The call was transmitted successfully, but Amazon S3 couldn't process 
+            // The call was transmitted successfully, but Amazon S3 couldn't process
             // it, so it returned an error response.
             e.printStackTrace();
         } catch (SdkClientException e) {
@@ -157,13 +171,13 @@ public class FileDataStoreS3 implements FileDataStore {
     private byte[] DownloadBytesFromS3(String key) throws Exception{
         S3Object fullObject = null;
         key = postFix + "/" + key;
-        System.out.println(key);
-        System.out.println(bucket);
         try {
             fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
-            System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
+            System.out.println("   `" + key + "` downloaded from bucket `" + bucket + "`");
+            //System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
             return fullObject.getObjectContent().readAllBytes();
         }  catch (Exception e) {
+            System.out.println("error: key `" + key + "` not found in bucket `" + bucket + "`");
             throw e;
         } finally {
             // To ensure that the network connection doesn't remain open, close any open input streams.
