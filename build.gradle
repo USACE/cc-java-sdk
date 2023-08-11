@@ -31,6 +31,34 @@ jar {
 }
 
 publishing {
+    repositories {
+        maven {
+            // Choose whatever name you want
+            name = "GitHubPackages"
+            // The url of the repository, where the artifacts will be published
+            url = "https://maven.pkg.github.com/USACE/cc-java-sdk"
+            credentials {
+                // The credentials (described in the next section)
+                username = System.getenv("USERNAME")
+                password = System.getenv("TOKEN")
+            }
+        }
+    }
+    publications {
+        gpr(MavenPublication) {
+            from(components.java)
+            // Fixes the error with dynamic versions when using Spring Boot
+            versionMapping {
+                usage('java-api') {
+                    fromResolutionOf('runtimeClasspath')
+                }
+                usage('java-runtime') {
+                    fromResolutionResult()
+                }
+            }
+        }
+    }
+
     group 'mil.army.usace.hec'
     version '0.0.50'
 }
