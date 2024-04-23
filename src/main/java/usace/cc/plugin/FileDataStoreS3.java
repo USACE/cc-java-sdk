@@ -14,6 +14,8 @@ import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.client.builder.AwsClientBuilder;
 import com.amazonaws.regions.Regions;
+import com.amazonaws.regions.Region;
+import com.amazonaws.regions.RegionUtils;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.DeleteObjectRequest;
@@ -101,7 +103,7 @@ public class FileDataStoreS3 implements FileDataStore {
         //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY+"::"+config.aws_secret_access_key_id);
         //System.out.println(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_S3_BUCKET+"::"+config.aws_bucket);
         
-        Regions clientRegion = Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
+        Region clientRegion = RegionUtils.getRegion(config.aws_region.toUpperCase().replace("-", "_"));//Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
         try {
             AmazonS3 s3Client = null;
             if(config.aws_mock){
@@ -112,7 +114,7 @@ public class FileDataStoreS3 implements FileDataStore {
 
                 s3Client = AmazonS3ClientBuilder
                     .standard()
-                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(config.aws_endpoint, clientRegion.name()))
+                    .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(config.aws_endpoint, clientRegion.getName()))
                     .withPathStyleAccessEnabled(config.aws_force_path_style)
                     .withClientConfiguration(clientConfiguration)
                     .withCredentials(new AWSStaticCredentialsProvider(credentials))
@@ -121,7 +123,7 @@ public class FileDataStoreS3 implements FileDataStore {
                 AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
                 s3Client = AmazonS3ClientBuilder
                     .standard()
-                    .withRegion(clientRegion)
+                    .withRegion(clientRegion.getName())
                     .withCredentials(new AWSStaticCredentialsProvider(credentials))
                     .build();                
             }
