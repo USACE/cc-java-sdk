@@ -56,7 +56,7 @@ public class CcStoreS3 implements CcStore {
         //System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID+"::"+config.aws_access_key_id);
         //System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY+"::"+config.aws_secret_access_key_id);
         //System.out.println(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_S3_BUCKET+"::"+config.aws_bucket);
-        Region clientRegion = RegionUtils.getRegion(config.aws_region.toUpperCase().replace("-", "_"));//Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
+        Region clientRegion = RegionUtils.getRegion(config.aws_region);//.toUpperCase().replace("-", "_"));//Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
         try {
             AmazonS3 s3Client = null;
             if(config.aws_mock){
