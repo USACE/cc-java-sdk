@@ -47,36 +47,18 @@ public class FileDataStoreS3 implements FileDataStore {
     }
     @Override
     public InputStream Get(String path) {
-        //byte[] data;
+        S3Object fullObject = null;
+        String key = postFix + "/" + path;
+        System.out.println(path);
+        System.out.println(bucket);
         try {
-            S3Object fullObject = null;
-            String key = postFix + "/" + path;
-            System.out.println(path);
-            System.out.println(bucket);
-            try {
-                fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
-                System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
-                return fullObject.getObjectContent();
-            }  catch (Exception e) {
-                throw e;
-            } finally {
-                // To ensure that the network connection doesn't remain open, close any open input streams.
-                if (fullObject != null) {
-                    try {
-                        fullObject.close();
-                    }  catch (Exception e) {
-                        System.out.println("key " + key + " failed to download.\n" + e.getMessage());
-                        throw e;
-                        
-                        //return fullObject.getObjectContent();
-                    }
-                }
-            }
-            
-        } catch (Exception e) {
+            fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
+            System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
+            return fullObject.getObjectContent();
+        }  catch (Exception e) {
             e.printStackTrace();
             return null;
-        }
+        } 
     }
 
     @Override
