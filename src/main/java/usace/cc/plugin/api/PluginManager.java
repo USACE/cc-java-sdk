@@ -116,8 +116,10 @@ public final class PluginManager {
 
     private void substitutePathVariables(){
         var attrs = this.payload.getAttributes();
-
         //var attrs = this.payload.getAttributes().merge(this.payload.getActions());
+        //substitute attributes from env variables only.
+        substitutePayloadAttributes(attrs);
+
 
         for (DataSource ds : this.payload.getInputs()){ 
             substitutePaths(ds,attrs);
@@ -128,45 +130,52 @@ public final class PluginManager {
         }
 
         for (Action action :this.payload.getActions()){
-            //create a merged map for action path substitution
-            var mergedAttr = attrs.merge(action.getAttributes());
-
-            //Disabling substitute in action attributes
-            //substituteAttributes(action.getAttributes());
+            PayloadAttributes actionAttrs = action.getAttributes();
+            //substitute action attributes using payload attributes and env varibles
+            substituteAttributes(actionAttrs, attrs);
   
             for (DataSource ds : action.getInputs()){ 
-                substitutePaths(ds,mergedAttr);
+                substitutePaths(ds,actionAttrs);
             }
     
             for (DataSource ds : action.getOutputs()){ 
-                substitutePaths(ds,mergedAttr);
+                substitutePaths(ds,actionAttrs);
             }
+            
         }
     }
-
-    //this method is depricated and no longer used
-    //keeping it around for another version or two in case we change our mind
-    //and decide to allow action attribute substitution again
-    private void substituteAttributes(PayloadAttributes pattrs){
+    //substitute action attributes from env variables and payload attributes.
+    private void substitutePayloadAttributes(PayloadAttributes pattrs){
         var attrs = pattrs.getAttributes();
         for (Map.Entry<String, Object> entry : attrs.entrySet()) {
             //var key = entry.getKey();
             var val = entry.getValue();
             if (val instanceof String){
-                parameterSubstitute((String)val, pattrs);
+                attrs.put(entry.getKey(),parameterSubstitute((String)val, pattrs, false));
+            }            
+        }
+    }
+    //substitute action attributes from env variables and payload attributes.
+    private void substituteAttributes(PayloadAttributes pattrs, PayloadAttributes source){
+        var attrs = pattrs.getAttributes();
+        for (Map.Entry<String, Object> entry : attrs.entrySet()) {
+            //var key = entry.getKey();
+            var val = entry.getValue();
+            if (val instanceof String){
+                attrs.put(entry.getKey(),parameterSubstitute((String)val, source, true));
             }            
         }
     }
 
     //a.k.a. pathssubstitute
     private void substitutePaths(DataSource ds, PayloadAttributes attrs){
-        var param = parameterSubstitute(ds.getName(),attrs); 
+        var param = parameterSubstitute(ds.getName(),attrs, true); 
         ds.setName(param);
         
         var paths = ds.getPaths();
         if (paths!=null){
             for (String key : paths.keySet()){
-                paths.put(key, parameterSubstitute(paths.get(key), attrs));
+                paths.put(key, parameterSubstitute(paths.get(key), attrs, true));
             }
             ds.setPaths(paths);
         }
@@ -176,13 +185,13 @@ public final class PluginManager {
         if (datapathsOpt.isPresent()){
             var datapaths = datapathsOpt.get();
             for (String key : datapaths.keySet()){
-                datapaths.put(key, parameterSubstitute(datapaths.get(key), attrs));
+                datapaths.put(key, parameterSubstitute(datapaths.get(key), attrs, true));
             }
             ds.setDataPaths(datapaths);
         }
     }
 
-    private String parameterSubstitute(String param, PayloadAttributes attrs) {
+    private String parameterSubstitute(String param, PayloadAttributes attrs, boolean attrsub) {
         Matcher m = p.matcher(param);
         while(m.find()){
             String result = m.group();
@@ -196,14 +205,19 @@ public final class PluginManager {
                     m = p.matcher(param);
                 break;
                 case "ATTR":
-                    Optional<String> optVal = attrs.get(subname);
-                    if (optVal.isPresent()){
-                        param = param.replaceFirst("\\{"+result+"\\}", optVal.get());//?
-                        m = p.matcher(param);
-                    } else{
-                        //@TODO logging is applied inconsistently
-                        logger.logMessage(new Message(String.format("Attribute %s not found", subname)));
+                    if(attrsub){
+                        Optional<String> optVal = attrs.get(subname);
+                        if (optVal.isPresent()){
+                            param = param.replaceFirst("\\{"+result+"\\}", optVal.get());//?
+                            m = p.matcher(param);
+                        } else{
+                            //@TODO logging is applied inconsistently
+                            logger.logMessage(new Message(String.format("Attribute %s not found", subname)));
+                        }                        
+                    }else{
+                        logger.logMessage(new Message(String.format("Attribute substitution is not allowed in this case %s not used", subname)));
                     }
+
                 break;
             }
         }
