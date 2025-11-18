@@ -3,28 +3,32 @@ package usace.cc.plugin.api.cloud.aws;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
+import java.nio.file.FileSystem;
+import java.nio.file.FileSystems;
 import java.rmi.RemoteException;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Optional;
 
-import com.amazonaws.AmazonServiceException;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
-import com.amazonaws.SdkBaseException;
-import com.amazonaws.SdkClientException;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.RegionUtils;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.DeleteObjectRequest;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectResult;
-import com.amazonaws.services.s3.model.S3Object;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.ResponseInputStream;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.http.SdkHttpClient;
+import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectRequest;
+import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
+import software.amazon.awssdk.services.s3.model.PutObjectResponse;
+import software.amazon.awssdk.services.s3.model.S3Exception;
+//import software.amazon.nio.spi.s3.
 
 import usace.cc.plugin.api.ConnectionDataStore;
 import usace.cc.plugin.api.DataStore;
@@ -35,17 +39,15 @@ import usace.cc.plugin.api.GetObjectOutput;
 import usace.cc.plugin.api.PutObjectOutput;
 import usace.cc.plugin.api.StoreType;
 
-//@TODO move all package private vars to class private vars
 public class FileStoreS3 implements FileStore, ConnectionDataStore {
     String bucket;
     String postFix;
     StoreType storeType;
-    AmazonS3 awsS3;
+    S3Client awsS3;
     AWSConfig config;
     private static String S3ROOT = "root";
 
     public FileStoreS3(){}
-
 
     @Override
     public void copy(FileStore destStore, String srcPath, String destPath) throws DataStoreException{
@@ -67,12 +69,16 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
      */
     @Override
     public GetObjectOutput get(String path) throws DataStoreException{
-        S3Object fullObject = null;
-        String key = postFix + "/" + path;
+        GetObjectRequest request = GetObjectRequest.builder()
+            .bucket(bucket)
+            .key(postFix + "/" + path)
+            .build();
+            
         try {
-            fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
-            return new GetObjectOutput(fullObject.getObjectContent(), fullObject.getObjectMetadata().getContentType());
-        }  catch (Exception e) {
+            ResponseInputStream<GetObjectResponse> responseIs = awsS3.getObject(request, ResponseTransformer.toInputStream());
+            var response = responseIs.response();
+            return new GetObjectOutput(responseIs, response.contentType());
+        } catch (S3Exception e) {
            throw new DataStoreException(e);
         } 
     }
@@ -86,14 +92,12 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
      */
     @Override
     public PutObjectOutput put(InputStream data, String path) throws DataStoreException{
-        byte[] bytes;
         try {
-            bytes = data.readAllBytes();
+            byte[] bytes = data.readAllBytes();
             return uploadToS3(config.aws_bucket, postFix + "/" + path, bytes);
         } catch (IOException e) {
             throw new DataStoreException(e);
         }
-        
     }
 
     /**
@@ -104,10 +108,14 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
      */
     @Override
     public void delete(String path) throws DataStoreException {
-        DeleteObjectRequest dor = new DeleteObjectRequest(config.aws_bucket, postFix + "/" + path);
+        DeleteObjectRequest request = DeleteObjectRequest.builder()
+            .bucket(config.aws_bucket)
+            .key(postFix + "/" + path)
+            .build();
+            
         try{
-            awsS3.deleteObject(dor);
-        } catch (SdkClientException e) {
+            awsS3.deleteObject(request);
+        } catch (S3Exception e) {
             throw new DataStoreException(e);
         }
     }
@@ -115,7 +123,7 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
     /**
      * Returns the underlying AWS S3 client object.
      *
-     * @return The {@link AmazonS3} client object.
+     * @return The {@link S3Client} client object.
      */
     @Override
     public Object rawSession(){
@@ -137,35 +145,25 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
         config.aws_region = System.getenv(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_DEFAULT_REGION);
         config.aws_bucket = System.getenv(ds.getDsProfile() + "_" + EnvironmentVariables.AWS_S3_BUCKET);
         config.aws_endpoint = System.getenv(ds.getDsProfile() + "_"+ EnvironmentVariables.AWS_ENDPOINT);
-        //config.aws_disable_ssl = Boolean.parseBoolean(System.getenv(ds.getDsProfile() + "_"+ EnvironmentVariables.S3_DISABLE_SSL));//convert to bool?
-        //config.aws_force_path_style = Boolean.parseBoolean(System.getenv(ds.getDsProfile() + "_"+ EnvironmentVariables.S3_FORCE_PATH_STYLE));//convert to bool
         
-        Region clientRegion = RegionUtils.getRegion(config.aws_region);//.toUpperCase().replace("-", "_"));//Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
+        Region clientRegion = Region.of(config.aws_region);
         try {
-            
-            AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
+            AwsBasicCredentials credentials = AwsBasicCredentials.create(
+                config.aws_access_key_id, 
+                config.aws_secret_access_key_id
+            );
 
-            var clientBuilder = AmazonS3ClientBuilder.standard()
-                .withCredentials(new AWSStaticCredentialsProvider(credentials));
+            S3ClientBuilder clientBuilder = S3Client.builder()
+                .region(clientRegion)
+                .credentialsProvider(StaticCredentialsProvider.create(credentials));
 
-            if (!(config.aws_endpoint==null || "".equals(config.aws_endpoint))){
-                ClientConfiguration clientConfiguration = new ClientConfiguration();
-                clientConfiguration.setSignerOverride("AWSS3V4SignerType");
-                clientConfiguration.setProtocol(Protocol.HTTP);
-
-                clientBuilder.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(config.aws_endpoint, clientRegion.getName()))
-                    .withPathStyleAccessEnabled(true)
-                    .withClientConfiguration(clientConfiguration);
-
-            } else {
-                clientBuilder.withRegion(clientRegion.getName());
+            if (config.aws_endpoint != null && !config.aws_endpoint.isEmpty()) {
+                clientBuilder.endpointOverride(URI.create(config.aws_endpoint));
             }
 
             awsS3 = clientBuilder.build();
 
-        } catch (SdkClientException e ) {
-            //@TODO do we want to print the stackstrace?
-            //  I'm converting to a RuntimeException and throwing it up the stack
+        } catch (Exception e) {
             e.printStackTrace();
             throw new RuntimeException(e);
         }
@@ -183,7 +181,6 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
            throw new FailedToConnectError(e);
         }
         if (tmpRoot == ""){
-            //error out?
             System.out.print("Missing S3 Root Paramter. Cannot create the store.");
         }
         this.bucket = config.aws_bucket;
@@ -203,40 +200,80 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
     }
 
     private byte[] downloadBytesFromS3(String key) throws Exception{
-        S3Object fullObject = null;
         key = postFix + "/" + key;
         System.out.println(key);
         System.out.println(bucket);
         try {
-            fullObject = awsS3.getObject(new GetObjectRequest(bucket, key));
-            System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
-            return fullObject.getObjectContent().readAllBytes();
-        }  catch (Exception e) {
+            GetObjectRequest request = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
+                
+
+             ResponseBytes<GetObjectResponse> responseBytes = awsS3.getObject(request, ResponseTransformer.toBytes());
+            return responseBytes.asByteArray();
+        } catch (Exception e) {
             throw e;
-        } finally {
-            // To ensure that the network connection doesn't remain open, close any open input streams.
-            if (fullObject != null) {
-                try {
-                    fullObject.close();
-                }  catch (Exception e) {
-                    throw e;
-                }
-            }
         }
     }
 
     private PutObjectOutput uploadToS3(String bucketName, String objectKey, byte[] fileBytes) throws DataStoreException {
         try {
-            InputStream stream = new ByteArrayInputStream(fileBytes);
-            ObjectMetadata meta = new ObjectMetadata();
-            meta.setContentLength(fileBytes.length);
-            PutObjectRequest putOb = new PutObjectRequest(bucketName, objectKey,stream, meta);
-            PutObjectResult response = awsS3.putObject(putOb);
-            System.out.println(response.getETag());
-            return new PutObjectOutput(response.getETag(),response.getContentMd5());
-        } catch (SdkBaseException e) {
+            PutObjectRequest request = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(objectKey)
+                .build();
+                
+            RequestBody body = RequestBody.fromBytes(fileBytes);
+            PutObjectResponse response = awsS3.putObject(request, body);
+            System.out.println(response.eTag());
+            return new PutObjectOutput(response.eTag(), response.eTag()); // MD5 not available in v2, using ETag
+        } catch (S3Exception e) {
             throw new DataStoreException(e);
         }
     }
 
+//     @Override
+//     public FileSystem getFileSystem(DataStore store, String path) throws IOException {
+//         Optional<String> rootPathOpt = store.getParameters().get(S3ROOT);
+//         String rootPath = "";
+//         if (rootPathOpt.isPresent()){
+//             rootPath = rootPathOpt.get();
+//         }
+//         String profile = store.getDsProfile();
+
+//         String fullPath = String.format("%s/%s", rootPath, path);
+
+//         String bucket = System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_S3_BUCKET));
+
+//         Map<String, String> env = new HashMap<>();
+//         env.put("aws.accessKeyId", System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_ACCESS_KEY_ID)));
+//         env.put("aws.secretKey", System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_SECRET_ACCESS_KEY)));
+//         env.put("aws.region", System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_DEFAULT_REGION)));
+
+//         String altEndpoint = System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_ENDPOINT));
+//         if (altEndpoint != null && !altEndpoint.isEmpty()){
+//             env.put("aws.s3.endpoint", altEndpoint);
+//         }
+
+//         // Create a temporary S3Client for filesystem creation
+//         S3Client tempClient = S3Client.builder()
+//             .region(Region.of(System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_DEFAULT_REGION))))
+//             .credentialsProvider(StaticCredentialsProvider.create(
+//                 AwsBasicCredentials.create(
+//                     System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_ACCESS_KEY_ID)),
+//                     System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_SECRET_ACCESS_KEY))
+//                 )
+//             ))
+//             .build();
+
+//         // var fs = S3ClientFileSystemBuilder
+//         //     .newBuilder()
+//         //     .s3Client(tempClient)
+//         //     .bucket(bucket)
+//         //     .build();
+
+//         // return fs;
+//     }
 }
+

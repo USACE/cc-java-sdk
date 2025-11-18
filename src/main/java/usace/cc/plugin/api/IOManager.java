@@ -3,6 +3,7 @@ package usace.cc.plugin.api;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -10,11 +11,16 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
 
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import usace.cc.plugin.api.DataStore.DataStoreException;
+import usace.cc.plugin.api.cloud.aws.FileStoreS3;
 
 public class IOManager {
 
@@ -184,6 +190,37 @@ public class IOManager {
     public Optional<DataSource> getOutputDataSource(String name) throws InvalidDataSourceException {
         var gdsi = new GetDataSourceInput(name, DataSourceIOType.OUTPUT);
         return getDataSource(gdsi);
+    }
+
+    public void copyFilesToLocal(String dataSourceName, String pathkey, String localPath) throws IOException{
+        Path source=Paths.get("model-library/grids");
+        Path target=Paths.get("/data");
+        var input = new GetDataSourceInput(dataSourceName, DataSourceIOType.INPUT);
+        Optional<DataSource> sourceOpt = getDataSource(input);
+        if (sourceOpt.isPresent()){
+            var datasource = sourceOpt.get();
+            var storeOpt = getStore(datasource.getStoreName());
+            if (storeOpt.isPresent()){
+                var store = storeOpt.get();
+                FileStoreS3 fss3 = (FileStoreS3)store.getSession();
+                //var fs = fss3.getFileSystem(store,"model-library");
+                 System.out.println(fss3);
+            }
+        }
+        
+        // try (Stream<Path> walk = Files.walk(source)) {
+        //     walk.forEach(sourcePath -> {
+        //         Path targetPath = target.resolve(source.relativize(sourcePath));
+        //         //try {
+        //             System.out.println(targetPath);
+        //             // Use Files.copy for both files and directories, handling options carefully
+        //             //Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
+        //         // } catch (IOException e) {
+        //         //     System.err.println("Could not copy " + sourcePath + ": " + e.getMessage());
+        //         //}
+        //     });
+        // }
+
     }
 
     //@TODO....I include a data path here
