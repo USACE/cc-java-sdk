@@ -4,11 +4,7 @@ import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
-import java.nio.file.FileSystem;
-import java.nio.file.FileSystems;
 import java.rmi.RemoteException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Optional;
 
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
@@ -17,25 +13,28 @@ import software.amazon.awssdk.core.ResponseBytes;
 import software.amazon.awssdk.core.ResponseInputStream;
 import software.amazon.awssdk.core.sync.RequestBody;
 import software.amazon.awssdk.core.sync.ResponseTransformer;
-import software.amazon.awssdk.http.SdkHttpClient;
-import software.amazon.awssdk.http.apache.ApacheHttpClient;
 import software.amazon.awssdk.regions.Region;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.model.CommonPrefix;
 import software.amazon.awssdk.services.s3.model.DeleteObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectRequest;
 import software.amazon.awssdk.services.s3.model.GetObjectResponse;
+import software.amazon.awssdk.services.s3.model.ListObjectsV2Request;
 import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 import software.amazon.awssdk.services.s3.model.PutObjectResponse;
 import software.amazon.awssdk.services.s3.model.S3Exception;
+import software.amazon.awssdk.services.s3.model.S3Object;
 //import software.amazon.nio.spi.s3.
-
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 import usace.cc.plugin.api.ConnectionDataStore;
 import usace.cc.plugin.api.DataStore;
 import usace.cc.plugin.api.DataStore.DataStoreException;
 import usace.cc.plugin.api.EnvironmentVariables;
 import usace.cc.plugin.api.FileStore;
 import usace.cc.plugin.api.GetObjectOutput;
+import usace.cc.plugin.api.IOManager;
+import usace.cc.plugin.api.IOManager.FileVisitor;
 import usace.cc.plugin.api.PutObjectOutput;
 import usace.cc.plugin.api.StoreType;
 
@@ -46,6 +45,26 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
     S3Client awsS3;
     AWSConfig config;
     private static String S3ROOT = "root";
+
+    public static class S3FileObject implements IOManager.FileObject{
+        private final S3Object obj;
+        private final FileStoreS3 fs;
+
+        public S3FileObject(FileStoreS3 fs, S3Object obj){
+            this.fs=fs;
+            this.obj=obj;
+        }
+
+        @Override
+        public String name() {
+            return this.obj.key();
+        }
+
+        @Override
+        public GetObjectOutput get() throws DataStoreException{
+            return this.fs.get(this.obj.key());
+        }
+    }
 
     public FileStoreS3(){}
 
@@ -158,7 +177,9 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
                 .credentialsProvider(StaticCredentialsProvider.create(credentials));
 
             if (config.aws_endpoint != null && !config.aws_endpoint.isEmpty()) {
-                clientBuilder.endpointOverride(URI.create(config.aws_endpoint));
+                clientBuilder
+                .endpointOverride(URI.create(config.aws_endpoint))
+                .forcePathStyle(true);
             }
 
             awsS3 = clientBuilder.build();
@@ -233,47 +254,25 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
         }
     }
 
-//     @Override
-//     public FileSystem getFileSystem(DataStore store, String path) throws IOException {
-//         Optional<String> rootPathOpt = store.getParameters().get(S3ROOT);
-//         String rootPath = "";
-//         if (rootPathOpt.isPresent()){
-//             rootPath = rootPathOpt.get();
-//         }
-//         String profile = store.getDsProfile();
+    @Override
+    public void Walk(String path, FileVisitor visitor) {
+        ListObjectsV2Request request = ListObjectsV2Request.builder()
+                    .bucket("project-data")
+                    .prefix(path)
+                    .delimiter("/") 
+                    .build();
 
-//         String fullPath = String.format("%s/%s", rootPath, path);
-
-//         String bucket = System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_S3_BUCKET));
-
-//         Map<String, String> env = new HashMap<>();
-//         env.put("aws.accessKeyId", System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_ACCESS_KEY_ID)));
-//         env.put("aws.secretKey", System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_SECRET_ACCESS_KEY)));
-//         env.put("aws.region", System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_DEFAULT_REGION)));
-
-//         String altEndpoint = System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_ENDPOINT));
-//         if (altEndpoint != null && !altEndpoint.isEmpty()){
-//             env.put("aws.s3.endpoint", altEndpoint);
-//         }
-
-//         // Create a temporary S3Client for filesystem creation
-//         S3Client tempClient = S3Client.builder()
-//             .region(Region.of(System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_DEFAULT_REGION))))
-//             .credentialsProvider(StaticCredentialsProvider.create(
-//                 AwsBasicCredentials.create(
-//                     System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_ACCESS_KEY_ID)),
-//                     System.getenv(String.format("%s_%s", profile, EnvironmentVariables.AWS_SECRET_ACCESS_KEY))
-//                 )
-//             ))
-//             .build();
-
-//         // var fs = S3ClientFileSystemBuilder
-//         //     .newBuilder()
-//         //     .s3Client(tempClient)
-//         //     .bucket(bucket)
-//         //     .build();
-
-//         // return fs;
-//     }
+        ListObjectsV2Iterable paginator = awsS3.listObjectsV2Paginator(request);
+        for (var response : paginator) {
+            for (S3Object object : response.contents()) {
+                var fo = new S3FileObject(this,object);
+                visitor.visit(fo);
+            }
+            
+            for (CommonPrefix commonPrefix : response.commonPrefixes()) {
+                //recursively walk the common prefixes
+                Walk(commonPrefix.prefix(),visitor);
+            }
+        }
+    }
 }
-

@@ -3,7 +3,6 @@ package usace.cc.plugin.api;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
-import java.util.stream.Stream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
@@ -11,11 +10,8 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -23,6 +19,21 @@ import usace.cc.plugin.api.DataStore.DataStoreException;
 import usace.cc.plugin.api.cloud.aws.FileStoreS3;
 
 public class IOManager {
+
+    //interface to unify the handling of all file type objects
+    public static interface FileObject{
+        public String name();
+        public GetObjectOutput get() throws DataStoreException;
+        //public InputStream content();
+        //public String contentType();
+    }
+    
+    //file visitor functional interface for implementing Walk methods
+    //for FileStores 
+    @FunctionalInterface
+    public static interface FileVisitor {
+        public void visit(FileObject f);
+    }
 
     //IO Manager Error Types
     public static class InvalidDataSourceException extends RuntimeException {
@@ -192,9 +203,10 @@ public class IOManager {
         return getDataSource(gdsi);
     }
 
-    public void copyFilesToLocal(String dataSourceName, String pathkey, String localPath) throws IOException{
-        Path source=Paths.get("model-library/grids");
-        Path target=Paths.get("/data");
+    public void copyFilesToLocal(String dataSourceName, String pathkey, String localDir) throws IOException {
+        //Path source=Paths.get("model-library/grids");
+        //Path target=Paths.get("/data");
+        var startPath = pathkey;
         var input = new GetDataSourceInput(dataSourceName, DataSourceIOType.INPUT);
         Optional<DataSource> sourceOpt = getDataSource(input);
         if (sourceOpt.isPresent()){
@@ -202,25 +214,30 @@ public class IOManager {
             var storeOpt = getStore(datasource.getStoreName());
             if (storeOpt.isPresent()){
                 var store = storeOpt.get();
-                FileStoreS3 fss3 = (FileStoreS3)store.getSession();
-                //var fs = fss3.getFileSystem(store,"model-library");
-                 System.out.println(fss3);
+                FileStore fs = (FileStore)store.getSession();
+
+                //get object info
+
+
+
+                fs.Walk(startPath, (fo)->{                    
+                    System.out.println(fo.name());
+                    try {
+                        String remotename = fo.name();
+                        String localname = remotename.replace(pathkey,localDir);
+                        GetObjectOutput objdata = fo.get();
+
+                        //objdata.getContent()
+
+
+                    } catch (DataStoreException e) {
+                        throw new RuntimeException(e);
+                    }             
+                });
+                
+                
             }
         }
-        
-        // try (Stream<Path> walk = Files.walk(source)) {
-        //     walk.forEach(sourcePath -> {
-        //         Path targetPath = target.resolve(source.relativize(sourcePath));
-        //         //try {
-        //             System.out.println(targetPath);
-        //             // Use Files.copy for both files and directories, handling options carefully
-        //             //Files.copy(sourcePath, targetPath, StandardCopyOption.REPLACE_EXISTING);
-        //         // } catch (IOException e) {
-        //         //     System.err.println("Could not copy " + sourcePath + ": " + e.getMessage());
-        //         //}
-        //     });
-        // }
-
     }
 
     //@TODO....I include a data path here
