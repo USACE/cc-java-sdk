@@ -49,10 +49,12 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
     public static class S3FileObject implements IOManager.FileObject{
         private final S3Object obj;
         private final FileStoreS3 fs;
+        private final boolean useAbsolutePath;
 
-        public S3FileObject(FileStoreS3 fs, S3Object obj){
+        public S3FileObject(FileStoreS3 fs, S3Object obj, boolean useAbsolutePath){
             this.fs=fs;
             this.obj=obj;
+            this.useAbsolutePath=useAbsolutePath;
         }
 
         @Override
@@ -62,7 +64,7 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
 
         @Override
         public GetObjectOutput get() throws DataStoreException{
-            return this.fs.get(this.obj.key());
+            return this.fs.get(this.obj.key(),useAbsolutePath);
         }
     }
 
@@ -88,9 +90,16 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
      */
     @Override
     public GetObjectOutput get(String path) throws DataStoreException{
+        return this.get(path,false);
+    }
+
+    private GetObjectOutput get(String path, boolean useAbsolutePath) throws DataStoreException{
+        if (!useAbsolutePath){
+            path=postFix + "/"+ path;
+        }
         GetObjectRequest request = GetObjectRequest.builder()
             .bucket(bucket)
-            .key(postFix + "/" + path)
+            .key(path)
             .build();
             
         try {
@@ -100,6 +109,7 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
         } catch (S3Exception e) {
            throw new DataStoreException(e);
         } 
+
     }
 
     /**
@@ -202,7 +212,7 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
            throw new FailedToConnectError(e);
         }
         if (tmpRoot == ""){
-            System.out.print("Missing S3 Root Paramter. Cannot create the store.");
+            System.out.print("Missing S3 Root Paramter. Cannot create the store.");  //@TODO...shouldn't this be throwing an error?
         }
         this.bucket = config.aws_bucket;
         tmpRoot = tmpRoot.replaceFirst("^/+", "");
@@ -222,8 +232,8 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
 
     private byte[] downloadBytesFromS3(String key) throws Exception{
         key = postFix + "/" + key;
-        System.out.println(key);
-        System.out.println(bucket);
+        //System.out.println(key);
+        //System.out.println(bucket);
         try {
             GetObjectRequest request = GetObjectRequest.builder()
                 .bucket(bucket)
@@ -247,32 +257,41 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
                 
             RequestBody body = RequestBody.fromBytes(fileBytes);
             PutObjectResponse response = awsS3.putObject(request, body);
-            System.out.println(response.eTag());
+            //System.out.println(response.eTag());
             return new PutObjectOutput(response.eTag(), response.eTag()); // MD5 not available in v2, using ETag
         } catch (S3Exception e) {
             throw new DataStoreException(e);
         }
     }
 
-    @Override
-    public void Walk(String path, FileVisitor visitor) {
+    private void walkImpl(String absolutePath, FileVisitor visitor){
         ListObjectsV2Request request = ListObjectsV2Request.builder()
                     .bucket("project-data")
-                    .prefix(path)
+                    .prefix(absolutePath)
                     .delimiter("/") 
                     .build();
 
         ListObjectsV2Iterable paginator = awsS3.listObjectsV2Paginator(request);
         for (var response : paginator) {
             for (S3Object object : response.contents()) {
-                var fo = new S3FileObject(this,object);
+                var fo = new S3FileObject(this,object,true);
                 visitor.visit(fo);
             }
             
             for (CommonPrefix commonPrefix : response.commonPrefixes()) {
                 //recursively walk the common prefixes
-                Walk(commonPrefix.prefix(),visitor);
+                walkImpl(commonPrefix.prefix(),visitor);
             }
         }
+
+    }
+
+    @Override
+    public void walk(String path, FileVisitor visitor) {
+        if (path != null && path.startsWith("/")) {
+            path=path.substring(1);
+        }
+        path=String.format("%s/%s",postFix,path);
+        walkImpl(path, visitor);
     }
 }
