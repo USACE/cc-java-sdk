@@ -12,17 +12,3 @@ RUN cd /opt/tiledb &&\
     git checkout 0.30.0 &&\
     ./gradlew build -x test
 
-#-------------
-FROM dev as build
-
-COPY . /cc-java-sdk
-
-RUN --mount=type=secret,id=GITHUB_ACTOR \
-    --mount=type=secret,id=GITHUB_TOKEN \
-    sh -c ' \
-      export GITHUB_ACTOR=$(cat /run/secrets/git_actor); \
-      export GITHUB_TOKEN=$(cat /run/secrets/git_token); \
-      cd cc-java-sdk \
-      ./gradlew build publish -x test \
-    '
-
