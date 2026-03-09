@@ -6,6 +6,7 @@ import java.util.Optional;
 
 import usace.cc.plugin.api.cloud.aws.FileStoreS3;
 import usace.cc.plugin.api.eventstore.tiledb.TileDbEventStore;
+import usace.cc.plugin.api.local.FileStoreLocal;
 
 
 public class DataStoreTypeRegistry{
@@ -13,6 +14,7 @@ public class DataStoreTypeRegistry{
     static{
         registry = new HashMap<>();
         registry.put(StoreType.S3, FileStoreS3.class);
+        registry.put(StoreType.FS, FileStoreLocal.class);
         registry.put(StoreType.TILEDB, TileDbEventStore.class);
         
     }

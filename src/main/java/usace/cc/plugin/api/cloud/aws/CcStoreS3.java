@@ -66,22 +66,31 @@ public class CcStoreS3 implements CcStore {
         acfg.aws_endpoint = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ENDPOINT);        
         config = acfg;
 
-        Region clientRegion = Region.of(config.aws_region);
- 
-        S3ClientBuilder s3ClientBuilder = S3Client.builder()
-                .region(clientRegion)
-                .credentialsProvider(StaticCredentialsProvider.create(
-                    AwsBasicCredentials.create(config.aws_access_key_id, config.aws_secret_access_key_id)
-                ));
+        Region clientRegion = RegionUtils.getRegion(config.aws_region);//.toUpperCase().replace("-", "_"));//Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
+        var clientBuilder = AmazonS3ClientBuilder.standard();
+        if (config.aws_access_key_id != null && !config.aws_access_key_id.isEmpty()) {
+            AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
+            clientBuilder.withCredentials(new AWSStaticCredentialsProvider(credentials));
+        }
 
-        if (!(config.aws_endpoint == null || config.aws_endpoint.equals(""))) {
-            System.out.println(String.format("Using alt endpoint: %s", config.aws_endpoint));
-            config.aws_force_path_style = true;
-            config.aws_disable_ssl = true;
-            
-            s3ClientBuilder
-                .endpointOverride(URI.create(config.aws_endpoint))
-                .forcePathStyle(true);
+        AmazonS3 s3Client = null;
+        if(!(config.aws_endpoint==null ||  config.aws_endpoint.equals(""))){
+            System.out.println(String.format("Using alt endpoint: %s",config.aws_endpoint));
+            config.aws_force_path_style=true;
+            config.aws_disable_ssl=true;
+            ClientConfiguration clientConfiguration = new ClientConfiguration();
+            clientConfiguration.setSignerOverride("AWSS3V4SignerType");
+            clientConfiguration.setProtocol(Protocol.HTTP);
+
+            s3Client = clientBuilder
+                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(config.aws_endpoint, clientRegion.getName()))
+                .withPathStyleAccessEnabled(config.aws_force_path_style)
+                .withClientConfiguration(clientConfiguration)
+                .build();
+        }else{
+            s3Client = clientBuilder
+                .withRegion(clientRegion.getName())
+                .build();
         }
 
         awsS3 = s3ClientBuilder.build();

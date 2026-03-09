@@ -177,14 +177,11 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
         
         Region clientRegion = Region.of(config.aws_region);
         try {
-            AwsBasicCredentials credentials = AwsBasicCredentials.create(
-                config.aws_access_key_id, 
-                config.aws_secret_access_key_id
-            );
-
-            S3ClientBuilder clientBuilder = S3Client.builder()
-                .region(clientRegion)
-                .credentialsProvider(StaticCredentialsProvider.create(credentials));
+            var clientBuilder = AmazonS3ClientBuilder.standard();
+            if (config.aws_access_key_id != null && !config.aws_access_key_id.isEmpty()) {
+                AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
+                clientBuilder.withCredentials(new AWSStaticCredentialsProvider(credentials));
+            }
 
             if (config.aws_endpoint != null && !config.aws_endpoint.isEmpty()) {
                 clientBuilder
