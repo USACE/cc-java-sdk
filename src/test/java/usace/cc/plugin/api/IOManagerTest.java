@@ -18,8 +18,7 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import com.amazonaws.services.s3.AmazonS3;
-
+import software.amazon.awssdk.services.s3.S3Client;
 import usace.cc.plugin.api.DataStore.DataStoreException;
 import usace.cc.plugin.api.IOManager.InvalidDataSourceException;
 import usace.cc.plugin.api.IOManager.InvalidDataStoreException;
@@ -40,7 +39,7 @@ public class IOManagerTest {
         Optional<DataStore> storeOpt = payload.getStore("S3STORE");
         if (storeOpt.isPresent()){
             var store = storeOpt.get();
-            if (!(store.getRawSession() instanceof AmazonS3)){
+            if (!(store.getRawSession() instanceof S3Client)){
                 Assertions.fail("Session is not an S3 instance");    
             }
         } else {

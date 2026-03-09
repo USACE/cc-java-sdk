@@ -7,23 +7,23 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import com.amazonaws.ClientConfiguration;
-import com.amazonaws.Protocol;
-import com.amazonaws.SdkClientException;
-import com.amazonaws.auth.AWSCredentials;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
-import com.amazonaws.regions.Region;
-import com.amazonaws.regions.RegionUtils;
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.GetObjectRequest;
-import com.amazonaws.services.s3.model.ObjectMetadata;
-import com.amazonaws.services.s3.model.PutObjectRequest;
-import com.amazonaws.services.s3.model.PutObjectResult;
-import com.amazonaws.services.s3.model.S3Object;
+import java.net.URI;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.core.ResponseBytes;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.core.sync.ResponseTransformer;
+import software.amazon.awssdk.http.SdkHttpClient;
+//import software.amazon.awssdk.http.apache.ApacheHttpClient;
+import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest.Builder;
+
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import usace.cc.plugin.api.CcStore;
@@ -34,7 +34,6 @@ import usace.cc.plugin.api.Payload;
 import usace.cc.plugin.api.PullObjectInput;
 import usace.cc.plugin.api.PutObjectInput;
 import usace.cc.plugin.api.StoreType;
-
 
  /**
  * An implementation of {@link CcStore} that stores and retrieves data from Amazon S3.
@@ -55,52 +54,42 @@ public class CcStoreS3 implements CcStore {
     String manifestId;
     String payloadId;
     StoreType storeType;
-    AmazonS3 awsS3;
+    S3Client awsS3;
     AWSConfig config;
 
-    public CcStoreS3() throws SdkClientException{
+    public CcStoreS3() {
         AWSConfig acfg = new AWSConfig();
         acfg.aws_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ACCESS_KEY_ID);
         acfg.aws_secret_access_key_id = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_SECRET_ACCESS_KEY);
         acfg.aws_region = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_DEFAULT_REGION);
         acfg.aws_bucket = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_S3_BUCKET);
-        acfg.aws_endpoint = System.getenv(EnvironmentVariables.CC_PROFILE + "_" +EnvironmentVariables.AWS_ENDPOINT);        
+        acfg.aws_endpoint = System.getenv(EnvironmentVariables.CC_PROFILE + "_" + EnvironmentVariables.AWS_ENDPOINT);        
         config = acfg;
 
-        Region clientRegion = RegionUtils.getRegion(config.aws_region);//.toUpperCase().replace("-", "_"));//Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
+        Region clientRegion = Region.of(config.aws_region);
  
-        AmazonS3 s3Client = null;
-        if(!(config.aws_endpoint==null ||  config.aws_endpoint.equals(""))){
-            System.out.println(String.format("Using alt endpoint: %s",config.aws_endpoint));
-            config.aws_force_path_style=true;
-            config.aws_disable_ssl=true;
-            AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
-            ClientConfiguration clientConfiguration = new ClientConfiguration();
-            clientConfiguration.setSignerOverride("AWSS3V4SignerType");
-            clientConfiguration.setProtocol(Protocol.HTTP);
+        S3ClientBuilder s3ClientBuilder = S3Client.builder()
+                .region(clientRegion)
+                .credentialsProvider(StaticCredentialsProvider.create(
+                    AwsBasicCredentials.create(config.aws_access_key_id, config.aws_secret_access_key_id)
+                ));
 
-            s3Client = AmazonS3ClientBuilder
-                .standard()
-                .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(config.aws_endpoint, clientRegion.getName()))
-                .withPathStyleAccessEnabled(config.aws_force_path_style)
-                .withClientConfiguration(clientConfiguration)
-                .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                .build();
-        }else{
-            AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
-            s3Client = AmazonS3ClientBuilder
-                .standard()
-                .withRegion(clientRegion.getName())
-                .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                .build();                
+        if (!(config.aws_endpoint == null || config.aws_endpoint.equals(""))) {
+            System.out.println(String.format("Using alt endpoint: %s", config.aws_endpoint));
+            config.aws_force_path_style = true;
+            config.aws_disable_ssl = true;
+            
+            s3ClientBuilder
+                .endpointOverride(URI.create(config.aws_endpoint))
+                .forcePathStyle(true);
         }
-        awsS3 = s3Client;
+
+        awsS3 = s3ClientBuilder.build();
         
         storeType = StoreType.S3;
         manifestId = System.getenv(EnvironmentVariables.CC_MANIFEST_ID);
         payloadId = System.getenv(EnvironmentVariables.CC_PAYLOAD_ID);
-        //localRootPath = Constants.LOCAL_ROOT_PATH; //@TODO  what was this for?  there are no references so I commented it out.
-        bucket =  config.aws_bucket;// + Constants.RemoteRootPath;
+        bucket = config.aws_bucket;
         root = System.getenv(EnvironmentVariables.CC_ROOT);
     }
     
@@ -168,13 +157,13 @@ public class CcStoreS3 implements CcStore {
     }
 
     @Override
-    public Payload getPayload() throws AmazonS3Exception {
+    public Payload getPayload() throws S3Exception {
         String filepath = root + "/" + payloadId + "/" + CcStore.PAYLOAD_FILE_NAME;
         try{
             byte[] body = downloadBytesFromS3(filepath);
             return readJsonModelPayloadFromBytes(body);
         } catch (Exception e){
-            throw new AmazonS3Exception(e.toString());
+            throw S3Exception.builder().message(e.toString()).build();
         }
     }
 
@@ -199,11 +188,16 @@ public class CcStoreS3 implements CcStore {
             key = "\""+ key + "\""; 
         }
 
-        try(S3Object fullObject = awsS3.getObject(new GetObjectRequest(bucket, key))){
-            System.out.println("Content-Type: " + fullObject.getObjectMetadata().getContentType());
-            return fullObject.getObjectContent().readAllBytes();
-        }
+        GetObjectRequest getObjectRequest = GetObjectRequest.builder()
+                .bucket(bucket)
+                .key(key)
+                .build();
 
+        ResponseBytes<GetObjectResponse> responseBytes = awsS3.getObject(getObjectRequest, ResponseTransformer.toBytes());
+        var response = responseBytes.response();
+
+        System.out.println("Content-Type: " + response.contentType());
+        return responseBytes.asByteArray();
     }
 
     private Payload readJsonModelPayloadFromBytes(byte[] bytes) throws Exception {
@@ -216,12 +210,13 @@ public class CcStoreS3 implements CcStore {
     }
 
     private void uploadToS3(String bucketName, String objectKey, byte[] fileBytes) {
-        InputStream stream = new ByteArrayInputStream(fileBytes);
-        ObjectMetadata meta = new ObjectMetadata();
-        meta.setContentLength(fileBytes.length);
-        PutObjectRequest putOb = new PutObjectRequest(bucketName, objectKey,stream, meta);
-        PutObjectResult response = awsS3.putObject(putOb);
-        System.out.println(response.getETag()); //@use logger here?
+        PutObjectRequest putObjectRequest = PutObjectRequest.builder()
+                .bucket(bucketName)
+                .key(objectKey)
+                .build();
+
+        RequestBody requestBody = RequestBody.fromBytes(fileBytes);
+        PutObjectResponse response = awsS3.putObject(putObjectRequest, requestBody);
+        System.out.println(response.eTag()); //@use logger here?
     }
 }
-
