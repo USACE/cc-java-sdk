@@ -3,20 +3,40 @@ package usace.cc.plugin.api;
 import java.util.Arrays;
 import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Stream;
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import usace.cc.plugin.api.DataStore.DataStoreException;
+import usace.cc.plugin.api.cloud.aws.FileStoreS3;
 
 public class IOManager {
+
+    //interface to unify the handling of all file type objects
+    public static interface FileObject{
+        public String name();
+        public GetObjectOutput get() throws DataStoreException;
+        //public InputStream content();
+        //public String contentType();
+    }
+    
+    //file visitor functional interface for implementing Walk methods
+    //for FileStores 
+    @FunctionalInterface
+    public static interface FileVisitor {
+        public void visit(FileObject f);
+    }
 
     //IO Manager Error Types
     public static class InvalidDataSourceException extends RuntimeException {
@@ -184,6 +204,83 @@ public class IOManager {
     public Optional<DataSource> getOutputDataSource(String name) throws InvalidDataSourceException {
         var gdsi = new GetDataSourceInput(name, DataSourceIOType.OUTPUT);
         return getDataSource(gdsi);
+    }
+
+    /**
+ * Copies files from a data source to a local directory.
+ * 
+ * This method retrieves a data source and its associated store, then walks through
+ * the specified path in the data source and copies each file to the local directory.
+ * 
+ * @param dataSourceName the name of the data source to copy from
+ * @param pathkey the key used to look up the path in the data source's paths map
+ * @param localDir the local directory path where files will be copied
+ * @throws IOException if there are issues with file operations, data source retrieval,
+ *                     or store configuration
+ * @throws RuntimeException if there are issues with data store operations or
+ *                          stream copying
+ */
+    public void copyFilesToLocal(String dataSourceName, String pathkey, String localDir) throws IOException {
+        var input = new GetDataSourceInput(dataSourceName, DataSourceIOType.INPUT);
+        Optional<DataSource> sourceOpt = getDataSource(input);
+        if (sourceOpt.isPresent()){
+            DataSource datasource = sourceOpt.get();
+            Optional<DataStore> storeOpt = getStore(datasource.getStoreName());
+            if (storeOpt.isPresent()){
+                DataStore store = storeOpt.get();
+                FileStore fs = (FileStore)store.getSession();
+
+                //get object info
+                String relativePath=datasource.getPaths().get(pathkey);
+                String basePath = (String)store.getParameters().get("root")
+                        .orElseThrow(() -> new IOException("Root path not configured for store: " + store.getName()));
+
+                String startPath = String.format("%s/%s",basePath,relativePath);
+
+                fs.walk(relativePath, (fo)->{                    
+                    try {
+                        String remotename = fo.name();
+                        String localname = replacePaths(remotename,startPath,localDir,true);
+                        GetObjectOutput objdata = fo.get();
+                        Path outPath = Paths.get(localname);
+                        Files.createDirectories(outPath.getParent());
+                        try(InputStream srcStream = objdata.getContent();
+                            OutputStream destStream = new FileOutputStream(localname)){
+                                copyStreams(srcStream, destStream);
+                        } catch (IOException e) {
+                            throw new RuntimeException(e);
+                        }
+                    } catch (IOException | DataStoreException e) {
+                        throw new RuntimeException(e);
+                    }        
+                });   
+            }
+        }
+    }
+
+    private String replacePaths(String val, String replacePattern, String replacement, boolean keepLeadingSlash){
+        replacePattern=removeLeadingSlash(replacePattern);
+        replacement=removeLeadingSlash(replacement);
+        var path = val.replace(replacePattern,replacement);
+        if (keepLeadingSlash){
+            path="/"+path;
+        }
+        return path;
+    }
+
+    private String removeLeadingSlash(String path){
+        if (path != null && path.startsWith("/")) {
+            path=path.substring(1);
+        }
+        return path;
+    }
+
+    private void copyStreams(InputStream src, OutputStream dest) throws IOException{
+        byte[] buffer = new byte[8192]; //use an 8k buffer
+        int length;
+         while ((length = src.read(buffer)) > 0) {
+            dest.write(buffer, 0, length);
+        }
     }
 
     //@TODO....I include a data path here
@@ -375,6 +472,34 @@ public class IOManager {
         } 
     }
 
+    public void copyFilesToRemote(String destinationName, String pathKey, String localPathString) throws InvalidDataSourceException, InvalidDataStoreException, IOException, DataStoreException{
+        Optional<DataSource> dsOpt = this.getDataSource(new GetDataSourceInput(destinationName, DataSourceIOType.OUTPUT));
+        if(dsOpt.isPresent()){
+            var ds = dsOpt.get();
+            var dsPath = ds.getPath(pathKey);
+            Optional<FileStore> fdsOpt = getStoreSession(ds.getStoreName());
+            var fds = fdsOpt.get();
+            Path localPath = Path.of(localPathString);
+            try (Stream<Path> paths = Files.walk(localPath)) {
+                paths.forEach((p)->{
+                    if (Files.isRegularFile(p)){
+                        try{
+                            InputStream reader = new FileInputStream(p.toFile());
+                            String relativePath = p.toString().replace(localPathString, "");
+                            String remotePath = Paths.get(dsPath,relativePath).toString();
+                            fds.put(reader, remotePath);
+                        } catch(Exception ex){
+                            throw new RuntimeException(ex);
+                        }
+                    }
+                });
+            } catch (IOException e) {
+                throw e;
+            }
+
+        }
+
+    }
 
     /**
      * Retrieves a session object of type {@code T} from a data store with the specified name.
