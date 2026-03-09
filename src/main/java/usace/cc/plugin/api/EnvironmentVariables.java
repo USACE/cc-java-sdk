@@ -11,6 +11,8 @@ public final class EnvironmentVariables {
     public static String CC_PLUGIN_DEFINITION = "CC_PLUGIN_DEFINITION";
     public static String CC_PROFILE = "CC";
     public static String CC_PAYLOAD_FORMATTED = "CC_PAYLOAD_FORMATTED";
+    public static String CC_STORE_TYPE = "CC_STORE_TYPE";
+    public static String FSB_ROOT_PATH = "FSB_ROOT_PATH";
     public static String AWS_ACCESS_KEY_ID = "AWS_ACCESS_KEY_ID";
     public static String AWS_SECRET_ACCESS_KEY = "AWS_SECRET_ACCESS_KEY";
     public static String AWS_DEFAULT_REGION = "AWS_DEFAULT_REGION";

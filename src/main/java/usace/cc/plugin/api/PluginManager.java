@@ -15,6 +15,7 @@ import usace.cc.plugin.api.action_runner.ActionRunner;
 import usace.cc.plugin.api.action_runner.ActionRunner.ActionRunnerException;
 import usace.cc.plugin.api.action_runner.ActionRunnerBase;
 import usace.cc.plugin.api.cloud.aws.CcStoreS3;
+import usace.cc.plugin.api.local.CcStoreLocal;
 
 public final class PluginManager {
 
@@ -40,7 +41,23 @@ public final class PluginManager {
         //String sender = System.getenv(EnvironmentVariables.CC_PLUGIN_DEFINITION);
         eventIdentifier=System.getenv(EnvironmentVariables.CC_EVENT_IDENTIFIER);
         this.log = new Logger("PluginManager");
-        cs = new CcStoreS3();
+
+        String storeType = System.getenv(EnvironmentVariables.CC_STORE_TYPE);
+        if (storeType == null || storeType.isEmpty()) {
+            storeType = "S3"; // Default to S3 if not specified
+        }
+        switch (storeType) {
+            case "FS":
+                cs = new CcStoreLocal();
+                break;
+            case "S3":
+                cs = new CcStoreS3();
+                break;
+            default:
+                throw new InvalidDataStoreException(
+                    new IllegalArgumentException("Unsupported store type: " + storeType));
+        }
+
         try {
             this.payload = cs.getPayload();
             this.connectStores(payload.getStores());

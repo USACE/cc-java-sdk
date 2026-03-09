@@ -68,31 +68,30 @@ public class CcStoreS3 implements CcStore {
         config = acfg;
 
         Region clientRegion = RegionUtils.getRegion(config.aws_region);//.toUpperCase().replace("-", "_"));//Regions.valueOf(config.aws_region.toUpperCase().replace("-", "_"));
- 
+        var clientBuilder = AmazonS3ClientBuilder.standard();
+        if (config.aws_access_key_id != null && !config.aws_access_key_id.isEmpty()) {
+            AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
+            clientBuilder.withCredentials(new AWSStaticCredentialsProvider(credentials));
+        }
+
         AmazonS3 s3Client = null;
         if(!(config.aws_endpoint==null ||  config.aws_endpoint.equals(""))){
             System.out.println(String.format("Using alt endpoint: %s",config.aws_endpoint));
             config.aws_force_path_style=true;
             config.aws_disable_ssl=true;
-            AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
             ClientConfiguration clientConfiguration = new ClientConfiguration();
             clientConfiguration.setSignerOverride("AWSS3V4SignerType");
             clientConfiguration.setProtocol(Protocol.HTTP);
 
-            s3Client = AmazonS3ClientBuilder
-                .standard()
+            s3Client = clientBuilder
                 .withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(config.aws_endpoint, clientRegion.getName()))
                 .withPathStyleAccessEnabled(config.aws_force_path_style)
                 .withClientConfiguration(clientConfiguration)
-                .withCredentials(new AWSStaticCredentialsProvider(credentials))
                 .build();
         }else{
-            AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
-            s3Client = AmazonS3ClientBuilder
-                .standard()
+            s3Client = clientBuilder
                 .withRegion(clientRegion.getName())
-                .withCredentials(new AWSStaticCredentialsProvider(credentials))
-                .build();                
+                .build();
         }
         awsS3 = s3Client;
         

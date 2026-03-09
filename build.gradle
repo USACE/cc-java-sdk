@@ -13,7 +13,7 @@ plugins {
 }
 
 group = 'usace.cc'
-version = '1.0.0'
+version = '1.1.2'
 
 repositories {
     // Use Maven Central for resolving dependencies.
@@ -32,7 +32,7 @@ dependencies {
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     //implementation libs.guava
 
-    implementation files('/TileDB-2.26.2/TileDB-Java/build/libs/tiledb-java-0.28.2-SNAPSHOT.jar')
+    implementation 'io.tiledb:tiledb-java:0.29.0'
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.4'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.12.4'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
