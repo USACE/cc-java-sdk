@@ -32,7 +32,7 @@ dependencies {
     // This dependency is used internally, and not exposed to consumers on their own compile classpath.
     //implementation libs.guava
 
-    implementation files('/opt/tiledb/TileDB-Java/build/libs/tiledb-java-0.30.0.jar')
+    implementation 'io.tiledb:tiledb-java:0.31.0'
     implementation 'com.fasterxml.jackson.core:jackson-annotations:2.12.4'
     implementation 'com.fasterxml.jackson.core:jackson-core:2.12.4'
     implementation 'com.fasterxml.jackson.core:jackson-databind:2.12.4'
