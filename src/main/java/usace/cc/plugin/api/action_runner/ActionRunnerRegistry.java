@@ -19,9 +19,11 @@ public class ActionRunnerRegistry {
     private Map<String, Class<? extends ActionRunner>> runnerClasses = new HashMap<>();
 
     public ActionRunnerRegistry(){
-        runnerClasses = new HashMap<>();   
+        runnerClasses = new HashMap<>();
+     }
+    public void registerActionRunnerClass(String name, Class<? extends ActionRunner> clazz) {
+        runnerClasses.put(name, clazz);
     }
-
     public Optional<Class<? extends ActionRunner>> getActionRunnerClass(String name) {
         return Optional.ofNullable(runnerClasses.get(name));
     }
