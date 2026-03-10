@@ -15,6 +15,8 @@ import usace.cc.plugin.api.DataStore.DataStoreException;
 import usace.cc.plugin.api.EnvironmentVariables;
 import usace.cc.plugin.api.FileStore;
 import usace.cc.plugin.api.GetObjectOutput;
+import usace.cc.plugin.api.IOManager;
+import usace.cc.plugin.api.IOManager.FileVisitor;
 import usace.cc.plugin.api.PutObjectOutput;
 import usace.cc.plugin.api.StoreType;
 
@@ -38,7 +40,26 @@ public class FileStoreLocal implements FileStore, ConnectionDataStore {
     private String basePath;
     private StoreType storeType;
     private static final String ROOT_PARAM = "root";
+    public static class LocalFileObject implements IOManager.FileObject{
+        private final String path;
+        private final FileStoreLocal fs;
 
+
+        public LocalFileObject(FileStoreLocal fs, String path){
+            this.fs=fs;
+            this.path=path;
+        }
+
+        @Override
+        public String name() {
+            return this.path;
+        }
+
+        @Override
+        public GetObjectOutput get() throws DataStoreException{
+            return this.fs.get(this.path);
+        }
+    }
     public FileStoreLocal() {
         this.storeType = StoreType.FS;
     }
@@ -144,5 +165,10 @@ public class FileStoreLocal implements FileStore, ConnectionDataStore {
             throw new DataStoreException(e);
         }
     }
-
+    @Override
+    public void walk(String path, FileVisitor visitor) {
+        Path fullPath = Paths.get(basePath).resolve(path);
+        LocalFileObject lfo = new LocalFileObject(this,fullPath.toString());
+        visitor.visit(lfo);
+    }
 }

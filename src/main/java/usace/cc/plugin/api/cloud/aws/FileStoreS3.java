@@ -38,6 +38,7 @@ import usace.cc.plugin.api.IOManager.FileVisitor;
 import usace.cc.plugin.api.PutObjectOutput;
 import usace.cc.plugin.api.StoreType;
 
+
 public class FileStoreS3 implements FileStore, ConnectionDataStore {
     String bucket;
     String postFix;
@@ -177,11 +178,14 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
         
         Region clientRegion = Region.of(config.aws_region);
         try {
-            var clientBuilder = AmazonS3ClientBuilder.standard();
-            if (config.aws_access_key_id != null && !config.aws_access_key_id.isEmpty()) {
-                AWSCredentials credentials = new BasicAWSCredentials(config.aws_access_key_id, config.aws_secret_access_key_id);
-                clientBuilder.withCredentials(new AWSStaticCredentialsProvider(credentials));
-            }
+            AwsBasicCredentials credentials = AwsBasicCredentials.create(
+                config.aws_access_key_id, 
+                config.aws_secret_access_key_id
+            );
+
+            S3ClientBuilder clientBuilder = S3Client.builder()
+                .region(clientRegion)
+                .credentialsProvider(StaticCredentialsProvider.create(credentials));
 
             if (config.aws_endpoint != null && !config.aws_endpoint.isEmpty()) {
                 clientBuilder
@@ -209,14 +213,13 @@ public class FileStoreS3 implements FileStore, ConnectionDataStore {
            throw new FailedToConnectError(e);
         }
         if (tmpRoot == ""){
-            System.out.print("Missing S3 Root Paramter. Cannot create the store.");  //@TODO...shouldn't this be throwing an error?
+            System.out.print("Missing S3 Root Paramter. Cannot create the store.");
         }
         this.bucket = config.aws_bucket;
         tmpRoot = tmpRoot.replaceFirst("^/+", "");
         this.postFix = tmpRoot;
         return this;
     }
-
     private byte[] getObject(String path) throws RemoteException {
         byte[] data;
         try {
