@@ -50,7 +50,7 @@ public class Substituter {
     }
 
     private static final Pattern substitutionPattern = Pattern.compile(
-        "\\{(ATTR|VAR|ENV)::([a-zA-Z_][a-zA-Z0-9_]*)(?:" +
+        "\\{(ATTR|VAR|ENV)::([a-zA-Z_][a-zA-Z0-9_-]*)(?:" +
             "(\\[\\s*\\])" +                     // group 3: captures "[]" when present
             "|\\[\\s*([0-9]+)\\s*\\]" +          // group 4: numeric index
             "|\\[\\s*'([^']*)'\\s*\\]" +         // group 5: single-quoted key
